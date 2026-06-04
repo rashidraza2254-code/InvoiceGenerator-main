@@ -1,0 +1,37 @@
+{
+  "summary": "Iteration 2 backend testing complete. 33/33 new pytest cases passed in /app/backend/tests/test_cafe_iter2.py covering: per-item discount math (incl. negative-line clamp), payment_mode default/capture/filter (Cash/Card/UPI/Other), date-range filter with inclusive to_date + 400 on invalid to_date, CSV export (route ordering BEFORE /bills/{id}, content-type text/csv, attachment header, exact header row, payment_mode filter, auth required, invalid to_date 400), Users CRUD by admin (list, create with role validation, duplicate-email 400, delete, self-delete blocked with 400), full cashier RBAC (403 on menu POST/PUT/DELETE, settings PUT, users GET/POST/DELETE; 200 on bills POST; public GETs still work), and backward compatibility (default Cash payment_mode and 0 item discount). Iteration-1 regression: 23/23 still passing.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/bills", "issue": "from_date is not validated for ISO format (only to_date is). A malformed from_date is silently treated as a string prefix, which could lead to confusing zero-result queries. Consider validating both for symmetry."},
+      {"endpoint": "POST /api/users", "issue": "No password strength/length validation. Empty or 1-char passwords are accepted."},
+      {"endpoint": "POST /api/bills", "issue": "tax_percent/service_percent/discount_amount and item.discount accept negative values (no Pydantic Field(ge=0) guard). Already noted in iteration-1."},
+      {"endpoint": "GET /api/bills filter", "issue": "Date filter uses string-prefix comparison on ISO created_at; works because all created_at are stored as UTC ISO strings, but timezone-aware boundary edge cases exist for non-UTC clients."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_cafe_iter2.py",
+    "/app/backend/tests/test_cafe_backend.py",
+    "/app/test_reports/pytest/pytest_iter2_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Route order correctness: /api/bills/export is correctly declared BEFORE /api/bills/{bill_id} in server.py (lines 496 vs 552). Verified via test (export returns 200 text/csv, not 400 invalid id).",
+    "require_admin guard is consistently applied to /menu POST/PUT/DELETE, /settings PUT, and all /users endpoints — RBAC tests confirm 403 for cashier on every protected route.",
+    "_calc_totals correctly clamps per-line subtotal at 0 when discount exceeds price*qty (max(0.0, ...)), preventing negative subtotal contributions.",
+    "BillItemIn.discount defaults to 0.0 and BillIn.payment_mode defaults to 'Cash' — backward compat verified via API (legacy-shaped payloads work).",
+    "Admin self-delete is blocked with 400 in delete_user (str(oid) == admin['id']).",
+    "Minor: User creation does not log who created the user or audit role grants — acceptable for MVP.",
+    "Minor: CSV export reads up to 10,000 bills in memory; fine for current scale but should paginate/stream for production.",
+    "Minor: from_date format is not validated (only to_date is). Inconsistent and could mislead users; add the same try/except ValueError -> 400."
+  ],
+  "updated_files": ["/app/backend/tests/test_cafe_iter2.py"],
+  "success_rate": {"backend": "100% (56/56 across iter1+iter2)", "frontend": "not tested (backend-only request)"},
+  "test_credentials": "admin@cafe.com / admin123 (seeded); cashier1@cafe.com / cashier123 (existed; fixture auto-creates if missing via admin POST /api/users)",
+  "seed_data_creation": "Created several TEST_-prefixed bills (UPI/Card/Cash payment modes) and one short-lived test user (test_del_<uuid>@cafe.com) which was deleted in the test. No menu mutations, no settings mutations.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Both test files in /app/backend/tests/ (test_cafe_backend.py = iter1, test_cafe_iter2.py = iter2) are green and form the regression suite. Run with: pytest /app/backend/tests/ -v. Cashier credentials cashier1@cafe.com/cashier123 are seeded by the cashier_client fixture if missing. Settings doc is NOT mutated by iter2 tests (only iter1 mutated+restored). Frontend has not been tested in this iteration.",
+  "rca of the issue": "N/A - no failing tests"
+}

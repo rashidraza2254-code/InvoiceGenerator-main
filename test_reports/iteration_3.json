@@ -1,0 +1,43 @@
+{
+  "summary": "Iteration 3 backend testing complete. 27/27 new pytest cases in /app/backend/tests/test_cafe_iter3.py PASSED. Full regression: 83/83 passed across iter1+iter2+iter3 (23 + 33 + 27). Covered: split-payment validation (sum mismatch 400, empty-after-filter 400, ±0.01 tolerance), split-payment persistence (payments[] saved, primary mode = first entry, used for /api/bills payment_mode filter), zero-amount entry filtering, backward-compat synthesis of payments=[{payment_mode, total}] when payments field omitted, void endpoint (admin-only -> 403 for cashier, invalid id 400, non-existent 404, success sets voided/voided_at/voided_by/voided_reason, double-void 400 with 'already voided'), audit log creation on void (action='bill.void', bill_id/bill_number/actor_email/reason/at; _id excluded; descending by 'at'; admin-only on GET /api/audit-log -> 403 for cashier), /api/stats/summary excludes voided from both today_* and grand_*, /api/analytics shape (revenue_by_day length=N zero-filled with date/total/count ascending; top_items <=10 sorted desc by revenue; payment_breakdown sorted desc by total; summary keys), analytics split-payment fan-out (1 bill with Cash 70 + UPI 30 increments BOTH payment_breakdown entries by count+1), voided bills excluded from revenue_by_day/top_items/payment_breakdown/summary.total_revenue/summary.total_bills but counted in summary.voided_count, /api/analytics requires auth (401), regressions on per-item discount math, CSV export, payment_mode filter, date filter, and cashier can post split-payment bills.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/bills (payments)", "issue": "No Pydantic validation that PaymentEntry.amount >= 0; negative amounts are filtered out by `if p.amount > 0` but a payload like [{Cash, -10},{UPI, total+10}] could pass with surprising semantics. Consider Field(ge=0) on PaymentEntry.amount and rejecting negatives explicitly."},
+      {"endpoint": "POST /api/bills (payments)", "issue": "No length/dedup check on payments. A payload of [{Cash, total/2},{Cash, total/2}] is accepted and inflates Cash count by 2 in /api/analytics payment_breakdown. Acceptable for MVP but mention in docs."},
+      {"endpoint": "POST /api/bills/{id}/void", "issue": "VoidIn.reason has no max length and no required validation; empty string allowed (stored as ''). Consider min_length=1 if business wants mandatory reason; currently void with empty reason is OK by spec."},
+      {"endpoint": "GET /api/analytics", "issue": "`days` is not bounded (1..N). days=0 produces empty revenue_by_day; days=10000 would build a huge dict. Add Query(ge=1, le=365)."},
+      {"endpoint": "GET /api/analytics", "issue": "Iterates ALL bills (db.bills.find()) in memory rather than using $match on created_at and $group for daily aggregation. Fine at MVP scale; will not scale to many thousands of bills."},
+      {"endpoint": "GET /api/audit-log", "issue": "No pagination/cursor; uses `limit` query but always sorts all docs. Acceptable for MVP."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_cafe_iter3.py",
+    "/app/backend/tests/test_cafe_iter2.py",
+    "/app/backend/tests/test_cafe_backend.py",
+    "/app/test_reports/pytest/pytest_iter3_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "create_bill correctly enforces payments-sum == total with ±0.01 tolerance, filters zero-amount entries first, and 400s on empty post-filter. Primary payment_mode is derived from payments[0].mode, matching spec.",
+    "_bill_to_out synthesizes payments=[{payment_mode, total}] when the stored doc has no `payments` array, so legacy bills returned with payments field. Verified.",
+    "void_bill is correctly guarded by require_admin; double-void returns 400 because of the explicit `voided` check before mutation. Atomicity caveat: void update + audit_log insert are NOT in a transaction. If the audit_log insert fails after the bill update, the void will exist without an audit entry. Acceptable for MVP but consider a small retry/compensating action or wrap in a session for production.",
+    "audit log returns `id` and removes `_id`; sorting by `at` descending verified. Each entry includes action/bill_id/bill_number/actor_email/actor_id/reason/at.",
+    "stats_summary uses `{voided: {$ne: True}}` which correctly includes docs without the voided field (legacy bills) AND excludes voided ones. Verified.",
+    "analytics correctly skips voided bills before contributing to revenue_by_day/top_items/payment_breakdown/summary.total_revenue/summary.total_bills, but still increments voided_count. Verified.",
+    "analytics zero-fills last `days` days into a dict and returns ascending by date (Python 3.7+ dict insertion order). revenue_by_day length matches days param.",
+    "analytics payment_breakdown fan-out: a single split bill with 2 payments contributes 2 entries (count+=1 per payment), which is the documented behaviour. Verified.",
+    "Minor: CORS still uses allow_origins=['*'] with allow_credentials=False; this works for current public-URL preview but does NOT permit cookie-based auth cross-origin — current code relies on the cookie being on the same eTLD+1 via the K8s ingress. Not a bug for this env, but worth flagging.",
+    "Minor: server.py is ~840 lines and starts to mix models + routes + seed; consider splitting into modules (auth, bills, analytics, users) before further growth.",
+    "Minor: `voided_at` uses isoformat() without explicit 'Z'; matches the rest of the codebase but is slightly ambiguous to consumers."
+  ],
+  "updated_files": ["/app/backend/tests/test_cafe_iter3.py", "/app/test_reports/iteration_3.json"],
+  "success_rate": {"backend": "100% (83/83 across iter1+iter2+iter3; iter3 = 27/27)", "frontend": "not tested (backend-only request)"},
+  "test_credentials": "admin@cafe.com / admin123 (seeded); cashier1@cafe.com / cashier123 (existed from iter2; fixture would auto-create via admin POST /api/users if missing)",
+  "seed_data_creation": "Created multiple TEST_-prefixed bills (split-payment, voided, top-item) and several voided bills. No menu/settings/users mutations were left behind (test_del_<uuid>@cafe.com users only in iter2 and are deleted as part of their own tests).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Three regression files now: /app/backend/tests/test_cafe_backend.py (iter1), test_cafe_iter2.py (iter2), test_cafe_iter3.py (iter3). Run all: `pytest /app/backend/tests/ -v` (~12s, 83 tests). Iter3 leaves several voided bills in the DB on purpose to keep audit_log non-empty; analytics tests are written delta-style (snapshot before/after) so they remain robust to accumulated test data. If running in a fresh environment, cashier_client fixture auto-provisions cashier1@cafe.com via admin. Frontend not exercised in this iteration; problem statement explicitly says screenshot-verified end-to-end by main agent.",
+  "rca of the issue": "N/A - all tests passing"
+}

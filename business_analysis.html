@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invoice Generator — Business Analysis & Feature Roadmap</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f7fa;
+      color: #1a1a2e;
+      line-height: 1.6;
+    }
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      color: white;
+      padding: 48px 32px 40px;
+      text-align: center;
+    }
+    header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    header p { color: #a0aec0; font-size: 1rem; }
+    .container { max-width: 960px; margin: 0 auto; padding: 32px 20px; }
+
+    .section { margin-bottom: 40px; }
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 3px solid #e94560;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title .icon { font-size: 1.3rem; }
+
+    /* Already have */
+    .tag-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .tag {
+      background: #e6f4ea;
+      color: #2d6a4f;
+      border: 1px solid #b7dfc6;
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* SaaS vs On-Premise cards */
+    .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 640px) { .card-grid { grid-template-columns: 1fr; } }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border-top: 4px solid #e94560;
+    }
+    .card.blue { border-top-color: #4361ee; }
+    .card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; color: #1a1a2e; }
+    .card .subtitle { font-size: 0.82rem; color: #718096; margin-bottom: 16px; }
+    .card .price-tag {
+      display: inline-block;
+      background: #f0f4ff;
+      color: #4361ee;
+      border-radius: 8px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .pros h4 { color: #2d6a4f; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .cons h4 { color: #c0392b; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .pros ul, .cons ul { list-style: none; }
+    .pros ul li::before { content: "✓ "; color: #2d6a4f; font-weight: 700; }
+    .cons ul li::before { content: "✗ "; color: #c0392b; font-weight: 700; }
+    .pros ul li, .cons ul li { font-size: 0.83rem; margin-bottom: 4px; color: #4a5568; }
+
+    /* Recommendation box */
+    .recommend-box {
+      background: linear-gradient(135deg, #fff8e1, #fff3cd);
+      border: 1px solid #f6c90e;
+      border-left: 5px solid #f6c90e;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-top: 20px;
+    }
+    .recommend-box h4 { color: #7d5a00; font-size: 1rem; margin-bottom: 8px; }
+    .recommend-box p { color: #5a4300; font-size: 0.9rem; }
+
+    /* Critical gap */
+    .alert-box {
+      background: #fff5f5;
+      border: 1px solid #fed7d7;
+      border-left: 5px solid #e94560;
+      border-radius: 10px;
+      padding: 20px 24px;
+    }
+    .alert-box h4 { color: #c0392b; font-size: 1rem; margin-bottom: 8px; }
+    .alert-box p { color: #742a2a; font-size: 0.88rem; line-height: 1.6; }
+    .code-inline {
+      background: #fee2e2;
+      color: #c0392b;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    /* Feature tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    thead tr { background: #1a1a2e; color: white; }
+    thead th { padding: 12px 18px; text-align: left; font-size: 0.85rem; font-weight: 600; }
+    tbody tr:nth-child(even) { background: #f8f9fc; }
+    tbody tr:hover { background: #eef2ff; }
+    tbody td { padding: 12px 18px; font-size: 0.875rem; color: #374151; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    tbody td:first-child { font-weight: 600; color: #1a1a2e; }
+
+    /* Priority badges */
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge.critical { background: #fee2e2; color: #c0392b; }
+    .badge.high { background: #fff3cd; color: #856404; }
+    .badge.medium { background: #e0f2fe; color: #0369a1; }
+
+    /* Roadmap */
+    .roadmap { display: flex; flex-direction: column; gap: 0; }
+    .roadmap-step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 20px 0;
+      border-left: 3px solid #e2e8f0;
+      padding-left: 28px;
+      position: relative;
+    }
+    .roadmap-step::before {
+      content: attr(data-step);
+      position: absolute;
+      left: -18px;
+      top: 20px;
+      background: #e94560;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+    .roadmap-step h4 { font-size: 0.95rem; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+    .roadmap-step p { font-size: 0.83rem; color: #718096; }
+    .roadmap-step .effort {
+      margin-left: auto;
+      white-space: nowrap;
+      font-size: 0.78rem;
+      color: #9ca3af;
+      padding-top: 2px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 32px;
+      color: #9ca3af;
+      font-size: 0.82rem;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Restaurant Invoice Generator</h1>
+  <p>Business Analysis &amp; Feature Roadmap &mdash; June 2026</p>
+</header>
+
+<div class="container">
+
+  <!-- What you already have -->
+  <div class="section">
+    <div class="section-title"><span class="icon">✅</span> What You Already Have</div>
+    <div class="tag-grid">
+      <span class="tag">Multi-branch support</span>
+      <span class="tag">Table management</span>
+      <span class="tag">User roles (Admin / Cashier)</span>
+      <span class="tag">JWT Authentication</span>
+      <span class="tag">Billing &amp; Invoice</span>
+      <span class="tag">Void bills</span>
+      <span class="tag">CSV export</span>
+      <span class="tag">Promo codes</span>
+      <span class="tag">Loyalty points</span>
+      <span class="tag">Stripe payment integration</span>
+      <span class="tag">WhatsApp bill (Twilio)</span>
+      <span class="tag">Analytics dashboard</span>
+      <span class="tag">Audit log</span>
+      <span class="tag">Stock / inventory tracking</span>
+      <span class="tag">Split payments</span>
+      <span class="tag">Low-stock alerts</span>
+    </div>
+  </div>
+
+  <!-- SaaS vs On-Premise -->
+  <div class="section">
+    <div class="section-title"><span class="icon">💼</span> SaaS vs On-Premise</div>
+    <div class="card-grid">
+
+      <div class="card">
+        <h3>Option A — SaaS (Cloud)</h3>
+        <div class="subtitle">You host, restaurants subscribe monthly</div>
+        <div class="price-tag">₹999 – ₹2,999 / month per restaurant</div>
+        <div class="pros-cons">
+          <div class="pros">
+            <h4>Pros</h4>
+            <ul>
+              <li>Recurring revenue</li>
+              <li>Push updates once</li>
+              <li>Low entry barrier</li>
+              <li>You control everything</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h4>Cons</h4>
+            <ul>
+              <li>Needs multi-tenancy</li>
+              <li>Data privacy concerns</li>
+              <li>Internet required</li>
+              <li>You pay server costs</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card blue">
+        <h3>Option B — On-Premise Install</h3>
+        <div class="subtitle">Install on restaurant's own server / PC</div>
+        <div class="price-tag">₹15,000 – ₹50,000 one-time + ₹500/month AMC</div>
+        <div class="pros-cons">
+          <div class="pros">
+            <h4>Pros</h4>
+            <ul>
+              <li>Works offline</li>
+              <li>Data stays local</li>
+              <li>Big one-time payment</li>
+              <li>No internet dependency</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h4>Cons</h4>
+            <ul>
+              <li>No recurring revenue</li>
+              <li>Manual updates</li>
+              <li>Hard to support remotely</li>
+              <li>Slow to scale</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="recommend-box">
+      <h4>⭐ Recommendation: Start SaaS, offer On-Premise as Premium</h4>
+      <p>SaaS gives you recurring monthly revenue and is far easier to scale. The codebase is almost ready — the only missing piece is <strong>multi-tenancy</strong>. Add a <code style="background:#fef3c7;padding:2px 6px;border-radius:4px;">restaurant_id</code> field to every record and you are 80% there. Offer on-premise as a high-ticket option for large or luxury restaurants who insist on owning their data.</p>
+    </div>
+  </div>
+
+  <!-- Critical Gap -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🚨</span> Critical Gap — Multi-Tenancy</div>
+    <div class="alert-box">
+      <h4>Current Problem</h4>
+      <p>
+        Right now <span class="code-inline">server.py</span> has one global settings document
+        (<span class="code-inline">_id: "default"</span>), one shared user pool, one shared menu, and one shared
+        customer list. If Restaurant A and Restaurant B both use your SaaS, their data will mix together.
+        <br /><br />
+        <strong>Fix needed:</strong> Add a <span class="code-inline">restaurant_id</span> field to every MongoDB collection
+        (bills, menu_items, customers, tables, branches, promos) and create a separate
+        <span class="code-inline">restaurants</span> collection for tenant management. Every API query must
+        filter by the logged-in user's <span class="code-inline">restaurant_id</span>. This is 1–2 weeks of dev work and
+        unlocks the entire SaaS model.
+      </p>
+    </div>
+  </div>
+
+  <!-- Must-Have Features -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🔴</span> Must-Have Features (for restaurant adoption)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Why Restaurants Need It</th>
+          <th>Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Thermal Printer / KOT Printing</td>
+          <td>90% of restaurants use thermal POS printers. Without this, cashiers cannot print bills at the counter.</td>
+          <td><span class="badge critical">Critical</span></td>
+        </tr>
+        <tr>
+          <td>PDF Invoice Download</td>
+          <td>Customers always ask for a soft copy. Currently only WhatsApp text is sent — no downloadable PDF.</td>
+          <td><span class="badge critical">Critical</span></td>
+        </tr>
+        <tr>
+          <td>GST-Compliant Invoice Format</td>
+          <td>Indian restaurants are legally required to show GSTIN, HSN codes, and proper GST breakdowns on bills.</td>
+          <td><span class="badge critical">Critical</span></td>
+        </tr>
+        <tr>
+          <td>Offline Mode (PWA)</td>
+          <td>Internet goes down = billing stops. Restaurants refuse software that fails when Wi-Fi is unstable.</td>
+          <td><span class="badge critical">Critical</span></td>
+        </tr>
+        <tr>
+          <td>Daily Closing / Z-Report</td>
+          <td>End-of-day cashier summary showing cash collected, card collected, total bills — mandatory in most restaurants.</td>
+          <td><span class="badge critical">Critical</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- High Impact Features -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🟡</span> High Impact Features (grow user base)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Why It Helps</th>
+          <th>Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>QR Code Table Ordering</td>
+          <td>Customer scans QR on table → browses menu → places order from their phone. Reduces staff needed. Very trendy.</td>
+          <td><span class="badge high">High</span></td>
+        </tr>
+        <tr>
+          <td>Kitchen Display System (KDS)</td>
+          <td>Orders appear on a screen in the kitchen instead of paper KOT slips. Modern restaurants prefer this.</td>
+          <td><span class="badge high">High</span></td>
+        </tr>
+        <tr>
+          <td>Subscription / Plan Management</td>
+          <td>You need a built-in page to collect money from restaurants — Free Trial → Basic → Pro tiers with feature gates.</td>
+          <td><span class="badge high">High</span></td>
+        </tr>
+        <tr>
+          <td>Delivery Integration (Zomato / Swiggy)</td>
+          <td>Pull orders directly into the billing system. Huge time saver for restaurants active on food delivery platforms.</td>
+          <td><span class="badge high">High</span></td>
+        </tr>
+        <tr>
+          <td>Post-Bill Customer Feedback</td>
+          <td>Send a WhatsApp link after payment → customer rates the food. Restaurants love this data for quality control.</td>
+          <td><span class="badge high">High</span></td>
+        </tr>
+        <tr>
+          <td>Multi-language UI</td>
+          <td>Hindi, Tamil, Telugu, etc. Opens up Tier 2 and Tier 3 city markets which are largely untapped.</td>
+          <td><span class="badge high">High</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Nice to Have -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🔵</span> Nice to Have (competitive edge)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Why</th>
+          <th>Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Employee Shift Management</td>
+          <td>Clock in / clock out, per-shift sales report. Useful for restaurant owners tracking staff performance.</td>
+          <td><span class="badge medium">Medium</span></td>
+        </tr>
+        <tr>
+          <td>Expense / Purchase Tracking</td>
+          <td>Track ingredient costs vs revenue to see actual profit — not just revenue.</td>
+          <td><span class="badge medium">Medium</span></td>
+        </tr>
+        <tr>
+          <td>Mobile App (Tablet Mode)</td>
+          <td>Waiter takes order on a tablet at the table and sends directly to kitchen. Premium feel.</td>
+          <td><span class="badge medium">Medium</span></td>
+        </tr>
+        <tr>
+          <td>Reservation / Booking System</td>
+          <td>Table booking with customer SMS/WhatsApp confirmation. Useful for fine dining restaurants.</td>
+          <td><span class="badge medium">Medium</span></td>
+        </tr>
+        <tr>
+          <td>Customer-Facing Display</td>
+          <td>Show order items and total on a second screen facing the customer at the counter.</td>
+          <td><span class="badge medium">Medium</span></td>
+        </tr>
+        <tr>
+          <td>Supplier / Purchase Orders</td>
+          <td>Raise purchase orders for stock replenishment directly from the low-stock alert screen.</td>
+          <td><span class="badge medium">Medium</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Fastest Path to Revenue -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🚀</span> Fastest Path to Revenue</div>
+    <div class="roadmap">
+      <div class="roadmap-step" data-step="1">
+        <div>
+          <h4>Add Multi-Tenancy</h4>
+          <p>Add <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">restaurant_id</code> to all collections. Makes SaaS viable — multiple restaurants can use the same hosted app with isolated data.</p>
+        </div>
+        <div class="effort">1–2 weeks</div>
+      </div>
+      <div class="roadmap-step" data-step="2">
+        <div>
+          <h4>Add Thermal Printer Support</h4>
+          <p>Integrate ESC/POS printing so cashiers can print bills at the counter. Without this, the app cannot replace existing POS systems.</p>
+        </div>
+        <div class="effort">1 week</div>
+      </div>
+      <div class="roadmap-step" data-step="3">
+        <div>
+          <h4>GST Invoice Format + PDF Download</h4>
+          <p>Generate a proper GST-compliant PDF invoice. Legal requirement in India and the most requested feature by any restaurant.</p>
+        </div>
+        <div class="effort">3–4 days</div>
+      </div>
+      <div class="roadmap-step" data-step="4">
+        <div>
+          <h4>Add Subscription &amp; Plan Page</h4>
+          <p>Build a billing page where restaurant owners can subscribe and pay. Use Stripe (already integrated). Free 30-day trial to reduce friction.</p>
+        </div>
+        <div class="effort">3–5 days</div>
+      </div>
+      <div class="roadmap-step" data-step="5">
+        <div>
+          <h4>Onboard First 10 Restaurants (Free Trial)</h4>
+          <p>Offer free trial to local restaurants. Collect feedback, fix pain points, then convert to paid. Word-of-mouth is the best channel in this market.</p>
+        </div>
+        <div class="effort">Ongoing</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Generated by Claude Code &mdash; Invoice Generator Business Analysis &mdash; June 2026
+</footer>
+
+</body>
+</html>

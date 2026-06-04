@@ -1,0 +1,95 @@
+{
+  "theme": "LIGHT",
+  "archetype": "1 (Organic & Earthy)",
+  "typography": {
+    "heading_font": "Manrope",
+    "body_font": "DM Sans",
+    "hierarchy": {
+      "h1": "text-4xl sm:text-5xl font-bold tracking-tight",
+      "h2": "text-2xl sm:text-3xl font-bold tracking-tight",
+      "h3": "text-xl sm:text-2xl font-semibold",
+      "body": "text-base leading-relaxed",
+      "small": "text-sm text-stone-500",
+      "overline": "text-xs font-bold uppercase tracking-[0.2em] text-stone-500"
+    }
+  },
+  "colors": {
+    "palette": {
+      "background": "#FDFBF7",
+      "surface": "#FFFFFF",
+      "surface_muted": "#F5F2EA",
+      "primary": "#C97A7E",
+      "primary_hover": "#B56A6D",
+      "secondary": "#6A7D64",
+      "secondary_hover": "#586A53",
+      "border": "#E8E4D9",
+      "text_main": "#2A2421",
+      "text_muted": "#7A736E"
+    },
+    "tailwind_classes": {
+      "background": "bg-[#FDFBF7]",
+      "surface": "bg-white",
+      "surface_muted": "bg-[#F5F2EA]",
+      "primary": "bg-[#C97A7E]",
+      "primary_hover": "hover:bg-[#B56A6D]",
+      "primary_text": "text-white",
+      "secondary": "bg-[#6A7D64]",
+      "secondary_hover": "hover:bg-[#586A53]",
+      "secondary_text": "text-white",
+      "text_main": "text-[#2A2421]",
+      "text_muted": "text-[#7A736E]",
+      "border": "border-[#E8E4D9]"
+    }
+  },
+  "layout_and_spacing": {
+    "philosophy": "Generous Spacing Philosophy with generous padding to prevent text collision. Using 'Control Room' grid logic for the POS bill creation interface.",
+    "pos_grid": "grid-cols-1 lg:grid-cols-3 gap-6. 2 columns for Menu, 1 column for Cart.",
+    "card_style": "Soft shadows, rounded corners (rounded-2xl). Flat background, 1px subtle border (border-[#E8E4D9]).",
+    "container_padding": "p-6 sm:p-8 lg:p-12",
+    "sidebar": "w-24 or w-64 depending on state, bg-white border-r border-[#E8E4D9]"
+  },
+  "components_strategy": {
+    "buttons": "Rounded-full or rounded-xl. Smooth transition, slight lift on hover.",
+    "cards": "Menu item cards should be rounded-2xl, overflow-hidden, with an image on top or left, soft shadow on hover.",
+    "cart_panel": "Sticky to the right side on large screens. Distinct surface color (e.g. #F5F2EA) to separate from the menu.",
+    "forms_inputs": "Shadcn UI base. Rounded-xl borders, focus:ring-2 focus:ring-[#C97A7E]",
+    "tables": "Shadcn tables for Bill History. Clean, unboxed rows (border-b only).",
+    "navigation": "Left sidebar or top header with clear icons. Minimalist.",
+    "icons": "lucide-react"
+  },
+  "motion_and_interactions": {
+    "hover": "Slight lift (-translate-y-1) for menu items, buttons darken and get subtle drop shadow.",
+    "cart_add": "Micro-interaction: slight scale pulse when adding to cart."
+  },
+  "media": {
+    "login_background": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/345afcf2-23c6-4d17-a0c0-0dfcdc385f34/images/6e52d941b531a5f5d801a9181644ab9c54a1d1aba1b678d4c6ce8e53f80e89e5.png",
+      "description": "Warm, cozy cafe interior background for the login page."
+    },
+    "coffee_item_1": {
+      "url": "https://images.unsplash.com/photo-1607278967703-161b7cc497f9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1NzZ8MHwxfHNlYXJjaHwzfHxjYWZlJTIwZXNwcmVzc28lMjBjb2ZmZWUlMjBsYXR0ZSUyMGFydHxlbnwwfHx8fDE3Nzk5NTYwOTZ8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Latte art for menu item."
+    },
+    "coffee_item_2": {
+      "url": "https://images.unsplash.com/photo-1507915135761-41a0a222c709?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1NzZ8MHwxfHNlYXJjaHwyfHxjYWZlJTIwZXNwcmVzc28lMjBjb2ZmZWUlMjBsYXR0ZSUyMGFydHxlbnwwfHx8fDE3Nzk5NTYwOTZ8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Pouring coffee for menu item."
+    },
+    "logo_idea": {
+      "url": "https://images.unsplash.com/photo-1769984884273-b2517254bb50?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDR8MHwxfHNlYXJjaHwyfHxjYWZlJTIwbG9nbyUyMG1pbmltYWwlMjBmbGF0fGVufDB8fHx8MTc3OTk1NjExMXww&ixlib=rb-4.1.0&q=85",
+      "description": "Cafe Logo inspiration."
+    }
+  },
+  "instructions_to_main_agent": [
+    "Extend tailwind.config.js to include these custom colors in the theme block so they can be easily used across Shadcn and custom components.",
+    "Add 'Manrope' and 'DM Sans' to Google Fonts import in index.html and configure them in tailwind.config.js.",
+    "Implement the Cashier login screen using the 'login_background' as a full cover background, with a glassy card in the center for the login form.",
+    "The main POS layout should use a side navigation (Sidebar) with icons for 'POS', 'Menu Management', and 'Bill History'.",
+    "In the POS Bill Creation view, implement a 'Control Room' grid: Left 2/3 for Menu Categories (tabs) and Items (grid), Right 1/3 for the Current Bill (Cart).",
+    "Use the 'surface_muted' color (#F5F2EA) for the Bill/Cart section to visually distinguish it from the white menu section.",
+    "Menu items should be represented as cards. Use the provided coffee images as placeholders.",
+    "Add 'data-testid' to all buttons, inputs, and key elements for testing.",
+    "Ensure the Bill History page uses a clean Shadcn Table component, unboxed rows with bottom borders only.",
+    "Keep borders subtle and rounded (rounded-2xl for major cards, rounded-xl for buttons).",
+    "Avoid harsh black colors; use the dark espresso (#2A2421) for primary text."
+  ]
+}

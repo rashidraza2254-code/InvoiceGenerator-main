@@ -1,0 +1,32 @@
+/* App-specific minor styles */
+.App { min-height: 100vh; }
+
+/* ── Thermal print styles ─────────────────────────────────────────────── */
+@media print {
+  /* Hide everything except the receipt */
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area { position: fixed; inset: 0; }
+
+  /* Thermal receipt layout */
+  .thermal-receipt {
+    width: 80mm;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 11pt;
+    line-height: 1.4;
+    padding: 4mm;
+    color: #000;
+    background: #fff;
+  }
+  .thermal-receipt.width-58mm { width: 58mm; font-size: 10pt; }
+  .thermal-receipt .no-print { display: none !important; }
+  .thermal-receipt hr { border: none; border-top: 1px dashed #000; margin: 3mm 0; }
+  .thermal-receipt .center { text-align: center; }
+  .thermal-receipt .bold { font-weight: bold; }
+  .thermal-receipt .big { font-size: 13pt; }
+  .thermal-receipt .row { display: flex; justify-content: space-between; }
+
+  /* Hide sidebar/nav when printing */
+  aside, nav, .no-print { display: none !important; }
+  main { padding: 0 !important; }
+}

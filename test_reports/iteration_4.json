@@ -1,0 +1,42 @@
+{
+  "summary": "Iteration 4 (inventory tracking) backend tests added in /app/backend/tests/test_cafe_iter4.py. 16/16 new tests pass and full regression across iter1+iter2+iter3+iter4 is green at 99/99.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/menu/low-stock", "issue": "Route is registered after /api/menu/{item_id} but FastAPI resolves it correctly because exact-prefix '/menu/low-stock' is registered as its own path. No bug observed, but ordering is fragile — recommend defining static paths before parameterised ones for safety."},
+      {"endpoint": "PUT /api/menu/{id}/stock", "issue": "delta is a required query param with no upper bound or sanity cap; abuse via huge positive delta is unconstrained (clamps only the lower bound to 0). Low priority."},
+      {"endpoint": "POST /api/bills (_check_and_decrement_stock)", "issue": "Decrement uses two phases (find then conditional update) which is not a true atomic transaction. Mitigated by per-item `$gte` conditional + rollback loop, but rollback itself is non-transactional — if the server crashes mid-rollback, stock drift is possible. Acceptable for MVP; consider Mongo transaction if multi-document atomicity becomes critical."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_cafe_iter4.py",
+    "/app/test_reports/pytest/pytest_iter4_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py is ~950 lines and starting to mix auth, menu, bills, analytics, and inventory — recommend modularising into routers/{auth,menu,bills,analytics}.py before next iteration.",
+    "_check_and_decrement_stock loops rollback updates without using a Mongo transaction; under high concurrency a crash mid-rollback could leak decrements. Document or move to a session/transaction.",
+    "low_stock_items sorts on x['stock'] with a None fallback to 0, but it only ever queries tracked items so None is impossible — dead branch, safe to simplify.",
+    "adjust_stock has no upper bound check and silently truncates non-integer query strings via FastAPI int coercion; consider Field(ge=-100000, le=100000) for defence-in-depth.",
+    "create_bill calls _check_and_decrement_stock BEFORE payment validation. If split payments are malformed, you 400 but stock is already decremented — verified to be a real bug (see RCA)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_cafe_iter4.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "not tested (backend-only request)"},
+  "test_credentials": "admin@cafe.com / admin123 (admin); cashier1@cafe.com / cashier123 (auto-created by cashier_client fixture if missing)",
+  "seed_data_creation": "Each test creates throwaway menu items prefixed with TEST_ via POST /api/menu and deletes them in the finally block. No persistent test data is added.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All four iteration test files coexist cleanly (test_cafe_backend.py, test_cafe_iter2.py, test_cafe_iter3.py, test_cafe_iter4.py) — 99 tests, ~16s runtime. Iter4 uses TEST_ prefix for menu items; if you see leftover TEST_* items, the cleanup finally-block didn't run — safe to delete manually. Note the potential ordering bug for /api/menu/low-stock vs /api/menu/{id} (currently works because FastAPI matches static routes when registered with same prefix, but moving routes around could break it). Also note the create_bill stock-then-payment-validation ordering issue documented in RCA — main agent should consider hoisting payments validation before stock decrement.",
+  "rca_of_issues": {
+    "stock_decrement_before_payment_validation": {
+      "reproduction": "POST /api/bills with valid items referencing a tracked menu item AND with payments[] that don't sum to the total (e.g. total=180 but payments=[{Cash,50},{UPI,30}]).",
+      "observed_behaviour": "API returns 400 'Sum of payments must equal total...' as expected, but the tracked menu item's stock is already decremented and is NOT rolled back.",
+      "root_cause": "In server.py create_bill (~line 571), _check_and_decrement_stock() runs BEFORE the payments/sum validation block (~lines 577-585). A 400 thrown by the payment validation never triggers a stock restore.",
+      "mitigation": "Either (a) move payments validation above _check_and_decrement_stock, or (b) wrap stock+payment validation in a try/except that calls _restore_stock-equivalent on failure. Option (a) is simpler and recommended.",
+      "severity": "Medium — silently desyncs inventory on malformed split-payment requests. Not exercised by the iter4 suite to avoid auto-fixing; documented here for main agent."
+    }
+  }
+}
