@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: invoice-generator
+  namespace: argocd
+  # Prune orphaned resources when ArgoCD manages the lifecycle
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: invoice-generator
+
+  source:
+    repoURL: https://github.com/your-github-username/InvoiceGenerator-main  # replace
+    targetRevision: main
+    path: k8s/overlays/production    # ArgoCD watches this directory
+    plugin:
+      # Uses Kustomize to render manifests before applying
+      name: ""
+    kustomize: {}
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: invoice-generator
+
+  syncPolicy:
+    automated:
+      prune: true       # Delete resources removed from Git
+      selfHeal: true    # Revert any manual kubectl changes
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 5
