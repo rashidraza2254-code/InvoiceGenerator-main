@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloud Deployment Guide — Cafe Bill Generator SaaS</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #FDFBF7;
+      color: #2A2421;
+      line-height: 1.6;
+      padding: 0 0 60px;
+    }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, #1a1310 0%, #3a2820 50%, #2A2421 100%);
+      color: #fff;
+      padding: 56px 32px 48px;
+      text-align: center;
+    }
+    .hero .badge {
+      display: inline-block;
+      background: rgba(201,122,126,0.25);
+      color: #f5b8ba;
+      border: 1px solid rgba(201,122,126,0.4);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 46px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+    .hero h1 span { color: #f5b8ba; }
+    .hero p {
+      color: rgba(255,255,255,0.65);
+      font-size: 16px;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Stack badge ─────────────────────────────────────────── */
+    .stack-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 32px auto 0;
+    }
+    .stack-pill {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 5px 14px;
+    }
+
+    /* ── Section titles ──────────────────────────────────────── */
+    .section { margin-top: 48px; }
+    .section-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #2A2421;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #E8E4D9;
+    }
+
+    /* ── Platform cards ──────────────────────────────────────── */
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .platform-card {
+      background: #fff;
+      border: 1px solid #E8E4D9;
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+      transition: box-shadow 0.2s;
+    }
+    .platform-card:hover { box-shadow: 0 4px 20px rgba(42,36,33,0.08); }
+
+    .platform-card.winner {
+      border-color: #6A7D64;
+      box-shadow: 0 0 0 2px #6A7D64, 0 4px 24px rgba(106,125,100,0.18);
+    }
+
+    .winner-ribbon {
+      position: absolute;
+      top: -1px; right: 20px;
+      background: #6A7D64;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 4px 12px 6px;
+      border-radius: 0 0 8px 8px;
+    }
+
+    .platform-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .platform-name {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+
+    .verdict-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .verdict-yes   { background: #6A7D64/15; background-color: rgba(106,125,100,0.15); color: #4a5e45; }
+    .verdict-warn  { background-color: rgba(217,149,59,0.15); color: #9a6a20; }
+    .verdict-no    { background-color: rgba(201,122,126,0.15); color: #9a4549; }
+
+    .platform-desc {
+      font-size: 13.5px;
+      color: #5a504d;
+      margin-bottom: 14px;
+    }
+
+    .pros-cons { list-style: none; font-size: 13px; }
+    .pros-cons li { padding: 3px 0 3px 20px; position: relative; color: #2A2421; }
+    .pros-cons li::before { position: absolute; left: 0; }
+    .pro::before  { content: "✓"; color: #6A7D64; font-weight: 700; }
+    .con::before  { content: "✗"; color: #C97A7E; font-weight: 700; }
+    .warn::before { content: "!"; color: #d9953b; font-weight: 700; }
+
+    .honest-box {
+      margin-top: 14px;
+      background: #FDFBF7;
+      border-left: 3px solid #C97A7E;
+      border-radius: 0 8px 8px 0;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #5a504d;
+    }
+    .honest-box strong { color: #C97A7E; }
+
+    /* ── Winner section ──────────────────────────────────────── */
+    .winner-section {
+      background: linear-gradient(135deg, #f0f4ee 0%, #e8ede6 100%);
+      border: 2px solid #6A7D64;
+      border-radius: 20px;
+      padding: 32px;
+      margin-top: 40px;
+    }
+    .winner-section h2 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #2A2421;
+      margin-bottom: 6px;
+    }
+    .winner-section .subtitle { color: #5a6e55; font-size: 14px; margin-bottom: 24px; }
+
+    .gcp-services {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .gcp-service {
+      background: #fff;
+      border: 1px solid #c5d4c1;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .gcp-service .svc-name { font-weight: 700; font-size: 15px; color: #2A2421; }
+    .gcp-service .svc-role { font-size: 12px; color: #7A736E; margin: 2px 0 6px; }
+    .gcp-service .svc-cost { font-size: 13px; font-weight: 600; color: #6A7D64; }
+
+    .why-list { list-style: none; display: grid; gap: 8px; }
+    .why-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: #2A2421;
+    }
+    .why-list li .icon {
+      width: 22px;
+      height: 22px;
+      background: #6A7D64;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      shrink: 0;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── Comparison table ────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin-top: 8px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #E8E4D9;
+    }
+    thead tr { background: #2A2421; color: #fff; }
+    thead th { padding: 12px 16px; text-align: left; font-weight: 600; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+    tbody tr { border-bottom: 1px solid #E8E4D9; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #FDFBF7; }
+    tbody td { padding: 12px 16px; vertical-align: middle; }
+    tbody td:first-child { font-weight: 700; }
+    .highlight-row { background: rgba(106,125,100,0.06) !important; }
+    .highlight-row td:first-child { color: #4a5e45; }
+
+    .tick   { color: #6A7D64; font-weight: 700; }
+    .cross  { color: #C97A7E; font-weight: 700; }
+    .caution { color: #d9953b; font-weight: 700; }
+
+    /* ── Next steps ──────────────────────────────────────────── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .step-card {
+      background: #fff;
+      border: 1px solid #E8E4D9;
+      border-radius: 12px;
+      padding: 18px 16px;
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: #C97A7E;
+      color: #fff;
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .step-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .step-card p  { font-size: 12.5px; color: #7A736E; }
+
+    .code-block {
+      background: #1a1310;
+      color: #e8d5c0;
+      border-radius: 12px;
+      padding: 20px 24px;
+      font-family: "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+    .code-block .comment { color: #7a6a5a; }
+    .code-block .cmd     { color: #f5b8ba; }
+    .code-block .val     { color: #b8d4a8; }
+
+    footer {
+      text-align: center;
+      color: #7A736E;
+      font-size: 12px;
+      margin-top: 60px;
+      padding-top: 24px;
+      border-top: 1px solid #E8E4D9;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="badge">SaaS Deployment Guide</div>
+  <h1>Deploy Cafe Bill Generator<br><span>on the Cloud</span></h1>
+  <p>Honest comparison of Supabase, Vercel, Azure, AWS, and GCP for your FastAPI + MongoDB + React stack.</p>
+  <div class="stack-row">
+    <span class="stack-pill">FastAPI (Python)</span>
+    <span class="stack-pill">MongoDB / Motor</span>
+    <span class="stack-pill">React + Tailwind</span>
+    <span class="stack-pill">Stripe + Twilio</span>
+    <span class="stack-pill">India / Mumbai Region</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Platform cards -->
+  <div class="section">
+    <div class="section-title">Platform-by-Platform Breakdown</div>
+    <div class="platform-grid">
+
+      <!-- Supabase -->
+      <div class="platform-card">
+        <div class="platform-header">
+          <div class="platform-name">Supabase</div>
+          <span class="verdict-badge verdict-no">Wrong Tool</span>
+        </div>
+        <p class="platform-desc">PostgreSQL + auth + storage BaaS. Not a Python hosting platform.</p>
+        <ul class="pros-cons">
+          <li class="con">Uses PostgreSQL — your entire backend is MongoDB</li>
+          <li class="con">No Python/FastAPI hosting — not a compute platform</li>
+          <li class="con">Rewrite Motor → Supabase client (huge effort)</li>
+          <li class="con">Rewrite JWT auth → Supabase Auth</li>
+          <li class="pro">Free tier is generous (if you rewrote everything)</li>
+        </ul>
+        <div class="honest-box">
+          <strong>Honest verdict:</strong> Supabase doesn't host your backend and uses a completely different database. To use it you'd rewrite 80% of your codebase. Don't do it.
+        </div>
+      </div>
+
+      <!-- Vercel -->
+      <div class="platform-card">
+        <div class="platform-header">
+          <div class="platform-name">Vercel</div>
+          <span class="verdict-badge verdict-warn">Frontend Only</span>
+        </div>
+        <p class="platform-desc">Built for Next.js and serverless. Not a Python app platform.</p>
+        <ul class="pros-cons">
+          <li class="pro">React frontend deployment is perfect and free</li>
+          <li class="pro">Excellent CDN, global edge network</li>
+          <li class="warn">FastAPI runs as serverless with 60s timeout limit</li>
+          <li class="con">MongoDB not included — still needs external Atlas</li>
+          <li class="con">Not designed for stateful Python apps</li>
+          <li class="con">Awkward for POS (long polling, cookie auth, websockets)</li>
+        </ul>
+        <div class="honest-box">
+          <strong>Honest verdict:</strong> Host your React frontend here for free. But run FastAPI elsewhere. Vercel is a frontend platform, not a full-stack one for Python.
+        </div>
+      </div>
+
+      <!-- Azure -->
+      <div class="platform-card">
+        <div class="platform-header">
+          <div class="platform-name">Azure</div>
+          <span class="verdict-badge verdict-warn">Overengineered</span>
+        </div>
+        <p class="platform-desc">Enterprise-grade. Truly all-in-one — but expensive and complex.</p>
+        <ul class="pros-cons">
+          <li class="pro">App Service hosts FastAPI (Python) natively</li>
+          <li class="pro">Cosmos DB has MongoDB API — drop-in for Motor</li>
+          <li class="pro">Static Web Apps for React (free tier)</li>
+          <li class="pro">India regions: Central India, South India, West India</li>
+          <li class="pro">Single bill, single portal (truly one platform)</li>
+          <li class="con">Most expensive option at startup scale</li>
+          <li class="con">Portal is confusing, steep learning curve</li>
+          <li class="con">Cosmos DB charged per RU — hard to predict costs</li>
+        </ul>
+        <div class="honest-box">
+          <strong>Honest verdict:</strong> Only choose Azure if your restaurant clients are enterprises who demand it for compliance. Too expensive and complex for a new SaaS.
+        </div>
+      </div>
+
+      <!-- AWS -->
+      <div class="platform-card">
+        <div class="platform-header">
+          <div class="platform-name">AWS</div>
+          <span class="verdict-badge verdict-warn">Too Distributed</span>
+        </div>
+        <p class="platform-desc">Most powerful. But also the most services to stitch together.</p>
+        <ul class="pros-cons">
+          <li class="pro">Largest ecosystem, most Indian developers know it</li>
+          <li class="pro">Mumbai region (ap-south-1) — best Indian coverage</li>
+          <li class="pro">Best ceiling — handles any scale</li>
+          <li class="warn">Need: EC2/ECS + ALB + S3 + CloudFront + Route53 + ACM</li>
+          <li class="con">MongoDB stays on Atlas (external) — DocumentDB is expensive</li>
+          <li class="con">6+ services to manage before writing one line of code</li>
+          <li class="con">IAM, VPC, security groups — weeks of DevOps setup</li>
+        </ul>
+        <div class="honest-box">
+          <strong>Honest verdict:</strong> Best platform when you have 200+ restaurants and a DevOps engineer. Worst starting point for a solo founder. Don't start here.
+        </div>
+      </div>
+
+      <!-- GCP -->
+      <div class="platform-card winner">
+        <div class="winner-ribbon">⭐ RECOMMENDED</div>
+        <div class="platform-header">
+          <div class="platform-name">GCP</div>
+          <span class="verdict-badge verdict-yes">Best Fit</span>
+        </div>
+        <p class="platform-desc">Cloud Run + Firebase = the cleanest 2-service deployment for this exact stack.</p>
+        <ul class="pros-cons">
+          <li class="pro">Cloud Run: purpose-built for Dockerized Python — perfect for FastAPI</li>
+          <li class="pro">Scale to zero — pay ₹0 when no restaurants are active at 3 AM</li>
+          <li class="pro">Firebase Hosting: best free CDN for React static sites</li>
+          <li class="pro">Mumbai region (asia-south1) — low latency in India</li>
+          <li class="pro">Cheapest total cost for variable SaaS traffic</li>
+          <li class="pro">One Google account, one billing dashboard</li>
+          <li class="warn">MongoDB stays on Atlas (external, but free tier available)</li>
+        </ul>
+        <div class="honest-box">
+          <strong>Honest verdict:</strong> Cloud Run was literally made for apps like this. Containerize, push, done. Firebase Hosting is the best free frontend CDN. Only 3 services total.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Winner deep-dive -->
+  <div class="winner-section">
+    <h2>Recommended Stack: GCP</h2>
+    <p class="subtitle">3 services. One billing account. Mumbai region. Scale to zero.</p>
+
+    <div class="gcp-services">
+      <div class="gcp-service">
+        <div class="svc-name">Cloud Run</div>
+        <div class="svc-role">FastAPI Backend</div>
+        <div class="svc-cost">Pay per request — ₹0 idle</div>
+        <p style="font-size:12px;color:#7A736E;margin-top:6px">Deploy Docker container. Auto-scales 0→∞. HTTPS included.</p>
+      </div>
+      <div class="gcp-service">
+        <div class="svc-name">Firebase Hosting</div>
+        <div class="svc-role">React Frontend</div>
+        <div class="svc-cost">Free (10GB/month)</div>
+        <p style="font-size:12px;color:#7A736E;margin-top:6px">CDN with 150+ edge locations. Deploy with one command.</p>
+      </div>
+      <div class="gcp-service">
+        <div class="svc-name">MongoDB Atlas</div>
+        <div class="svc-role">Database (Mumbai)</div>
+        <div class="svc-cost">Free → $57/month (M10)</div>
+        <p style="font-size:12px;color:#7A736E;margin-top:6px">Already using this. asia-south1 Mumbai cluster. Keep it.</p>
+      </div>
+    </div>
+
+    <ul class="why-list">
+      <li>
+        <div class="icon">1</div>
+        <div><strong>Scale to zero:</strong> Restaurant POS traffic is bursty — busy at lunch, dead at 3 AM. Cloud Run charges ₹0 when idle. EC2 charges 24/7.</div>
+      </li>
+      <li>
+        <div class="icon">2</div>
+        <div><strong>Mumbai region:</strong> <code>asia-south1</code> means your bills print fast for restaurants in India. Latency matters at a POS terminal.</div>
+      </li>
+      <li>
+        <div class="icon">3</div>
+        <div><strong>Minimum services:</strong> Cloud Run + Firebase = 2 Google services. Not AWS's 6+. Single account, single bill, single support.</div>
+      </li>
+      <li>
+        <div class="icon">4</div>
+        <div><strong>No lock-in:</strong> Cloud Run runs a standard Docker container. You can move it to AWS/Azure later by just moving the Dockerfile.</div>
+      </li>
+      <li>
+        <div class="icon">5</div>
+        <div><strong>Cost at 50 restaurants:</strong> ≈ ₹2,000–4,000/month. That's covered by a single Starter plan subscription (₹999/month × 5 restaurants).</div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Comparison table -->
+  <div class="section">
+    <div class="section-title">Side-by-Side Comparison</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>FastAPI hosting</th>
+            <th>MongoDB included</th>
+            <th>India region</th>
+            <th>Deploy time to live</th>
+            <th>Cost (5 restaurants)</th>
+            <th>Distributed?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Supabase</td>
+            <td class="cross">✗ No</td>
+            <td class="cross">✗ PostgreSQL only</td>
+            <td class="caution">~ Via CDN only</td>
+            <td>Weeks (full rewrite)</td>
+            <td>—</td>
+            <td class="cross">✗ Wrong tool</td>
+          </tr>
+          <tr>
+            <td>Vercel</td>
+            <td class="caution">⚠ Serverless only</td>
+            <td class="cross">✗ External Atlas</td>
+            <td class="tick">✓ Edge CDN</td>
+            <td>1–2 days (hacks needed)</td>
+            <td>₹1,000–2,000</td>
+            <td class="caution">⚠ Frontend only</td>
+          </tr>
+          <tr>
+            <td>Azure</td>
+            <td class="tick">✓ App Service</td>
+            <td class="tick">✓ Cosmos DB (MongoDB API)</td>
+            <td class="tick">✓ India regions</td>
+            <td>3–4 days</td>
+            <td>₹6,000–12,000</td>
+            <td class="tick">✓ Truly all-in-one</td>
+          </tr>
+          <tr>
+            <td>AWS</td>
+            <td class="tick">✓ EC2 / ECS</td>
+            <td class="caution">⚠ Atlas external</td>
+            <td class="tick">✓ Mumbai</td>
+            <td>1–2 weeks</td>
+            <td>₹4,000–8,000</td>
+            <td class="cross">✗ 6+ services</td>
+          </tr>
+          <tr class="highlight-row">
+            <td>⭐ GCP</td>
+            <td class="tick">✓ Cloud Run</td>
+            <td class="caution">⚠ Atlas external</td>
+            <td class="tick">✓ Mumbai</td>
+            <td>2–3 hours</td>
+            <td>₹1,500–3,500</td>
+            <td class="tick">✓ Only 2–3 services</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Next steps -->
+  <div class="section">
+    <div class="section-title">Deploy on GCP — Steps</div>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h4>Write Dockerfile</h4>
+        <p>Containerize the FastAPI backend. Python 3.11 slim image. uvicorn entrypoint.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h4>Push to Cloud Run</h4>
+        <p>gcloud run deploy. Set env vars (MONGO_URL, JWT_SECRET, etc.) as secrets.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h4>Set REACT_APP_BACKEND_URL</h4>
+        <p>Point frontend to the Cloud Run HTTPS URL auto-generated by Google.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <h4>Deploy React to Firebase</h4>
+        <p>npm run build → firebase deploy. Custom domain in 5 minutes.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">5</div>
+        <h4>MongoDB Atlas Mumbai</h4>
+        <p>Create M0 free cluster in asia-south1. Whitelist Cloud Run IP range.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">6</div>
+        <h4>Custom domain + SSL</h4>
+        <p>Firebase + Cloud Run both give free auto-SSL. Point your .in domain.</p>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <span class="comment"># 1. Build and push to Google Container Registry</span><br>
+      <span class="cmd">gcloud builds submit</span> <span class="val">--tag gcr.io/YOUR_PROJECT/cafe-backend</span><br><br>
+      <span class="comment"># 2. Deploy to Cloud Run (Mumbai)</span><br>
+      <span class="cmd">gcloud run deploy</span> cafe-backend \<br>
+      &nbsp;&nbsp;--image gcr.io/YOUR_PROJECT/cafe-backend \<br>
+      &nbsp;&nbsp;--region <span class="val">asia-south1</span> \<br>
+      &nbsp;&nbsp;--platform managed \<br>
+      &nbsp;&nbsp;--allow-unauthenticated \<br>
+      &nbsp;&nbsp;--set-env-vars <span class="val">MONGO_URL=...,JWT_SECRET=...,ADMIN_EMAIL=...</span><br><br>
+      <span class="comment"># 3. Deploy React frontend</span><br>
+      <span class="cmd">cd frontend &amp;&amp; yarn build</span><br>
+      <span class="cmd">firebase deploy</span> --only hosting
+    </div>
+  </div>
+
+  <!-- Azure alternative note -->
+  <div class="section">
+    <div style="background:#fff;border:1px solid #E8E4D9;border-radius:16px;padding:24px;">
+      <h3 style="font-size:17px;font-weight:700;margin-bottom:12px;color:#2A2421">When to switch to Azure instead</h3>
+      <p style="font-size:14px;color:#5a504d;line-height:1.7">
+        Azure becomes the right choice <strong>only if</strong>: your target customers are 5-star hotels or hospital chains who have Azure enterprise agreements and require data residency on Azure. In that case, deploy on <strong>Azure App Service (Python)</strong> + <strong>Cosmos DB (MongoDB API)</strong> + <strong>Azure Static Web Apps</strong>. Your Motor code works without any changes against Cosmos DB's MongoDB-compatible API. Everything stays under one Azure subscription. Expect ₹6,000–15,000/month but you can charge ₹8,000–25,000/month to enterprise restaurant chains.
+      </p>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="section" style="margin-bottom: 40px;">
+    <div style="background:linear-gradient(135deg,#2A2421,#3a2820);color:#fff;border-radius:20px;padding:32px;text-align:center;">
+      <div style="font-size:13px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:10px;">Bottom Line</div>
+      <div style="font-size:22px;font-weight:800;margin-bottom:12px;">GCP for speed. Azure for enterprise. AWS for scale.</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.65);max-width:500px;margin:0 auto;">
+        Start on GCP Cloud Run + Firebase today — live in 2–3 hours at ₹2,000/month.
+        Move to AWS when you have a DevOps team. Move to Azure when a hotel chain demands it.
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Cafe Bill Generator — Cloud Deployment Guide &nbsp;|&nbsp; Generated June 2026
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cafe Bill Generator — DevOps Portfolio</title>
+  <style>
+    :root {
+      --bg:        #f8fafc;
+      --surface:   #ffffff;
+      --surface2:  #f1f5f9;
+      --border:    #e2e8f0;
+      --accent:    #2563eb;
+      --accent2:   #059669;
+      --accent3:   #d97706;
+      --accent4:   #7c3aed;
+      --text:      #1e293b;
+      --muted:     #64748b;
+      --danger:    #dc2626;
+      --code-bg:   #f6f8fa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────────── */
+    .page { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+    /* ── Hero ───────────────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 60%);
+      border-bottom: 1px solid var(--border);
+      padding: 56px 24px 48px;
+      text-align: center;
+    }
+    .hero h1 { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.5px; }
+    .hero h1 span { color: var(--accent); }
+    .hero p { color: var(--muted); margin-top: 12px; font-size: 1.05rem; max-width: 680px; margin-inline: auto; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 24px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 14px; font-size: 0.8rem;
+      font-weight: 500; color: var(--muted);
+    }
+    .badge .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .dot-blue   { background: var(--accent); }
+    .dot-green  { background: var(--accent2); }
+    .dot-yellow { background: var(--accent3); }
+    .dot-purple { background: var(--accent4); }
+    .dot-red    { background: var(--danger); }
+
+    /* ── Nav pills ──────────────────────────────────────────────────── */
+    .nav { display: flex; flex-wrap: wrap; gap: 8px; padding: 24px 0 8px; border-bottom: 1px solid var(--border); margin-bottom: 40px; }
+    .nav a {
+      padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 500;
+      color: var(--muted); text-decoration: none; transition: background .15s, color .15s;
+    }
+    .nav a:hover { background: var(--surface2); color: var(--text); }
+
+    /* ── Sections ───────────────────────────────────────────────────── */
+    section { margin-bottom: 56px; scroll-margin-top: 20px; }
+    h2 {
+      font-size: 1.35rem; font-weight: 600; color: var(--text);
+      border-left: 3px solid var(--accent); padding-left: 14px;
+      margin-bottom: 20px;
+    }
+    h3 { font-size: 1.05rem; font-weight: 600; color: var(--accent2); margin: 28px 0 12px; }
+
+    /* ── Cards grid ─────────────────────────────────────────────────── */
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .card-icon { font-size: 1.4rem; margin-bottom: 8px; }
+    .card h4 { font-size: 0.9rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .card p  { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── Tables ─────────────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--surface2); }
+    th {
+      text-align: left; padding: 11px 16px; font-size: 0.8rem;
+      font-weight: 600; color: var(--muted); letter-spacing: .05em; text-transform: uppercase;
+    }
+    td { padding: 11px 16px; font-size: 0.87rem; border-top: 1px solid var(--border); }
+    tr:hover td { background: var(--surface); }
+    code {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 6px; font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 0.82rem; color: var(--accent2);
+    }
+
+    /* ── Code blocks ────────────────────────────────────────────────── */
+    pre {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px 24px; overflow-x: auto;
+      font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+      font-size: 0.83rem; line-height: 1.65; color: #24292f;
+    }
+    pre .cm { color: #6e7781; }
+    pre .kw { color: var(--accent4); }
+    pre .st { color: var(--accent2); }
+    pre .nu { color: var(--accent3); }
+    pre .fn { color: var(--accent); }
+
+    /* ── Architecture box ───────────────────────────────────────────── */
+    .arch {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 28px 28px; overflow-x: auto;
+      font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.82rem;
+      line-height: 1.8; color: #475569;
+    }
+    .arch .hl   { color: var(--accent); font-weight: 600; }
+    .arch .hl2  { color: var(--accent2); }
+    .arch .hl3  { color: var(--accent3); }
+    .arch .hl4  { color: var(--accent4); }
+    .arch .dim  { color: #94a3b8; }
+
+    /* ── Pipeline steps ─────────────────────────────────────────────── */
+    .pipeline { display: flex; flex-direction: column; gap: 0; }
+    .pipe-step {
+      display: flex; gap: 20px; align-items: flex-start;
+      padding: 20px 0; border-bottom: 1px solid var(--border);
+    }
+    .pipe-step:last-child { border-bottom: none; }
+    .pipe-num {
+      min-width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+    }
+    .num-blue   { background: #dbeafe; color: var(--accent); }
+    .num-green  { background: #d1fae5; color: var(--accent2); }
+    .num-yellow { background: #fef3c7; color: var(--accent3); }
+    .num-purple { background: #ede9fe; color: var(--accent4); }
+    .pipe-body h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
+    .pipe-body p  { font-size: 0.85rem; color: var(--muted); }
+
+    /* ── File tree ──────────────────────────────────────────────────── */
+    .tree {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 24px; font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 0.82rem; line-height: 1.9;
+    }
+    .tree .dir  { color: var(--accent); font-weight: 600; }
+    .tree .file { color: var(--text); }
+    .tree .ann  { color: var(--muted); }
+    .tree .key  { color: var(--accent2); font-weight: 600; }
+
+    /* ── Steps list ─────────────────────────────────────────────────── */
+    .steps { counter-reset: step; display: flex; flex-direction: column; gap: 16px; }
+    .step {
+      counter-increment: step;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px 20px 18px 60px; position: relative;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    }
+    .step::before {
+      content: counter(step);
+      position: absolute; left: 18px; top: 18px;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700; color: var(--accent);
+      display: grid; place-items: center;
+    }
+    .step h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; }
+    .step p  { font-size: 0.85rem; color: var(--muted); }
+    .step pre { margin-top: 10px; }
+
+    /* ── JD coverage pills ──────────────────────────────────────────── */
+    .jd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+    .jd-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 16px;
+      display: flex; align-items: flex-start; gap: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    }
+    .jd-check { color: var(--accent2); font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .jd-item h4 { font-size: 0.88rem; font-weight: 600; margin-bottom: 3px; }
+    .jd-item p  { font-size: 0.8rem; color: var(--muted); }
+
+    /* ── Footer ─────────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border); padding: 28px 24px;
+      text-align: center; color: var(--muted); font-size: 0.82rem;
+    }
+
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 1.7rem; }
+      .cards   { grid-template-columns: 1fr; }
+      .jd-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Hero ──────────────────────────────────────────────────────────── -->
+<div class="hero">
+  <h1>Cafe Bill Generator &mdash; <span>Cloud-Native POS</span></h1>
+  <p>A full-stack Point-of-Sale application deployed on Azure Kubernetes Service
+     with a complete GitOps pipeline. Built as a DevOps portfolio project.</p>
+  <div class="badge-row">
+    <span class="badge"><span class="dot dot-blue"></span>React 19</span>
+    <span class="badge"><span class="dot dot-green"></span>FastAPI</span>
+    <span class="badge"><span class="dot dot-yellow"></span>MongoDB</span>
+    <span class="badge"><span class="dot dot-blue"></span>Docker</span>
+    <span class="badge"><span class="dot dot-purple"></span>Kubernetes / AKS</span>
+    <span class="badge"><span class="dot dot-blue"></span>GitHub Actions</span>
+    <span class="badge"><span class="dot dot-green"></span>Terraform</span>
+    <span class="badge"><span class="dot dot-yellow"></span>ArgoCD</span>
+    <span class="badge"><span class="dot dot-red"></span>Prometheus + Grafana</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <nav class="nav">
+    <a href="#features">Features</a>
+    <a href="#stack">Tech Stack</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#quickstart">Quick Start</a>
+    <a href="#pipeline">CI/CD Pipeline</a>
+    <a href="#deployment">Full Deployment</a>
+    <a href="#structure">Repo Structure</a>
+    <a href="#jd">JD Coverage</a>
+  </nav>
+
+  <!-- ── Application Features ──────────────────────────────────────── -->
+  <section id="features">
+    <h2>Application Features</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🔐</div>
+        <h4>Authentication</h4>
+        <p>JWT-based login, bcrypt passwords, role-based access control — Admin vs Cashier, enforced server-side.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛒</div>
+        <h4>POS Interface</h4>
+        <p>Tabbed menu by category, search, cart with qty +/−, live total calculation with tax, service charge, and discounts.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💳</div>
+        <h4>Split Payments</h4>
+        <p>Multi-payment per bill — Cash, Card, UPI, or combinations. Sum validated against total ±0.01.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧾</div>
+        <h4>Receipts &amp; PDF</h4>
+        <p>Printable on-screen receipt and PDF download via jsPDF. Includes payment breakdown and VOID stamp.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h4>Analytics Dashboard</h4>
+        <p>Daily revenue area chart, top items by revenue, payment mode donut, KPI cards — powered by Recharts.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🚫</div>
+        <h4>Void &amp; Audit Trail</h4>
+        <p>Admin void with mandatory reason. Append-only audit log. Voided bills excluded from stats and analytics.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <h4>Bill History</h4>
+        <p>Date-range filter, payment-mode filter, CSV export. Daily and lifetime summary stats.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">👥</div>
+        <h4>User Management</h4>
+        <p>Admin creates and deletes cashier or admin accounts. Self-delete blocked server-side.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Tech Stack ─────────────────────────────────────────────────── -->
+  <section id="stack">
+    <h2>Tech Stack</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Layer</th><th>Technology</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Frontend</td><td>React 19, React Router, Tailwind CSS, shadcn/ui, jsPDF, Recharts</td></tr>
+          <tr><td>Backend</td><td>FastAPI, Uvicorn, Motor (async MongoDB), PyJWT, bcrypt</td></tr>
+          <tr><td>Database</td><td>MongoDB 7</td></tr>
+          <tr><td>Container Runtime</td><td>Docker, Docker Compose</td></tr>
+          <tr><td>Orchestration</td><td>Kubernetes — Azure AKS</td></tr>
+          <tr><td>Registry</td><td>Azure Container Registry (ACR)</td></tr>
+          <tr><td>IaC</td><td>Terraform — AKS, ACR, Log Analytics, RBAC</td></tr>
+          <tr><td>CI/CD</td><td>GitHub Actions — 4-stage pipeline</td></tr>
+          <tr><td>GitOps</td><td>ArgoCD — automated sync, selfHeal, prune</td></tr>
+          <tr><td>Manifests</td><td>Kustomize — base + production overlay</td></tr>
+          <tr><td>Monitoring</td><td>Prometheus + Grafana via kube-prometheus-stack</td></tr>
+          <tr><td>CI Auth</td><td>Azure OIDC federated credentials — no stored passwords</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Architecture ───────────────────────────────────────────────── -->
+  <section id="architecture">
+    <h2>DevOps Architecture</h2>
+    <div class="arch">
+<span class="dim">┌─────────────────────────────────────────────────────────────────────┐</span>
+<span class="dim">│</span>                         <span class="hl">Developer Workflow</span>                           <span class="dim">│</span>
+<span class="dim">│</span>                                                                       <span class="dim">│</span>
+<span class="dim">│</span>   <span class="hl2">git push origin main</span>                                               <span class="dim">│</span>
+<span class="dim">│</span>         │                                                             <span class="dim">│</span>
+<span class="dim">│</span>         ▼                                                             <span class="dim">│</span>
+<span class="dim">│</span>   <span class="hl">GitHub Actions CI/CD</span>                                              <span class="dim">│</span>
+<span class="dim">│</span>   <span class="dim">┌──────────────────────────────────────────────────────────────┐</span>   <span class="dim">│</span>
+<span class="dim">│</span>   <span class="dim">│</span> Job 1 <span class="hl3">Test</span>        pytest backend/tests/                        <span class="dim">│</span>   <span class="dim">│</span>
+<span class="dim">│</span>   <span class="dim">│</span> Job 2 <span class="hl3">Build</span>       docker build → push to <span class="hl">ACR</span>                  <span class="dim">│</span>   <span class="dim">│</span>
+<span class="dim">│</span>   <span class="dim">│</span> Job 3 <span class="hl3">GitOps</span>      kustomize edit set image                    <span class="dim">│</span>   <span class="dim">│</span>
+<span class="dim">│</span>   <span class="dim">│</span>                   git commit [skip ci] → push                  <span class="dim">│</span>   <span class="dim">│</span>
+<span class="dim">│</span>   <span class="dim">│</span> Job 4 <span class="hl3">Terraform</span>   plan/apply  (manual trigger only)           <span class="dim">│</span>   <span class="dim">│</span>
+<span class="dim">│</span>   <span class="dim">└──────────────────────────────────────────────────────────────┘</span>   <span class="dim">│</span>
+<span class="dim">│</span>         │                                                             <span class="dim">│</span>
+<span class="dim">│</span>         │  Git commit to <span class="hl2">k8s/overlays/production/</span>                   <span class="dim">│</span>
+<span class="dim">└─────────────────────────────────────────────────────────────────────┘</span>
+          │
+          ▼
+<span class="hl4">ArgoCD</span> (running on AKS) detects commit → auto-syncs cluster
+  <span class="dim">• selfHeal: true   — reverts manual kubectl changes</span>
+  <span class="dim">• prune: true      — deletes resources removed from Git</span>
+          │
+          ▼
+<span class="dim">┌────────────────────────────────────────┐</span>
+<span class="dim">│</span>   <span class="hl">Azure Kubernetes Service (AKS)</span>        <span class="dim">│</span>
+<span class="dim">│</span>   Namespace: <span class="hl2">invoice-generator</span>          <span class="dim">│</span>
+<span class="dim">│</span>                                          <span class="dim">│</span>
+<span class="dim">│</span>   <span class="hl3">frontend</span>  (Nginx/React)    ×2 pods    <span class="dim">│</span>
+<span class="dim">│</span>   <span class="hl3">backend</span>   (FastAPI)        ×2 pods    <span class="dim">│</span>
+<span class="dim">│</span>   <span class="hl3">mongodb</span>                    ×1 pod     <span class="dim">│</span>
+<span class="dim">│</span>                                          <span class="dim">│</span>
+<span class="dim">│</span>   Namespace: <span class="hl2">monitoring</span>                  <span class="dim">│</span>
+<span class="dim">│</span>   <span class="hl3">Prometheus</span> + <span class="hl3">Grafana</span>                  <span class="dim">│</span>
+<span class="dim">└────────────────────────────────────────┘</span>
+          ▲
+   Provisioned by <span class="hl4">Terraform</span>
+   (AKS + ACR + Log Analytics + RBAC)
+    </div>
+
+    <h3>GitOps Principle</h3>
+    <p style="color:var(--muted); font-size:0.9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:14px 18px; margin-top:4px;">
+      CI never runs <code>kubectl</code> against the cluster.
+      <strong style="color:var(--text)">Git is the single source of truth.</strong>
+      ArgoCD enforces cluster state from <code>k8s/overlays/production/</code>.
+      Any manual <code>kubectl</code> change is automatically reverted.
+    </p>
+  </section>
+
+  <!-- ── Quick Start ────────────────────────────────────────────────── -->
+  <section id="quickstart">
+    <h2>Quick Start — Local Development</h2>
+    <pre>docker-compose up --build</pre>
+    <div class="table-wrap" style="margin-top:16px;">
+      <table>
+        <thead><tr><th>Service</th><th>URL</th></tr></thead>
+        <tbody>
+          <tr><td>Frontend</td><td><code>http://localhost:3000</code></td></tr>
+          <tr><td>Backend API docs</td><td><code>http://localhost:8000/docs</code></td></tr>
+          <tr><td>MongoDB</td><td><code>localhost:27017</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:14px; color:var(--muted); font-size:0.85rem;">
+      Default login: <code>admin@cafe.com</code> / <code>admin123</code>
+    </p>
+  </section>
+
+  <!-- ── CI/CD Pipeline ─────────────────────────────────────────────── -->
+  <section id="pipeline">
+    <h2>CI/CD Pipeline</h2>
+    <p style="color:var(--muted); font-size:0.88rem; margin-bottom:20px;">
+      Triggers on <code>push</code> to <code>main</code> (paths excluding <code>k8s/overlays/**</code> to prevent infinite loops).
+    </p>
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-num num-blue">1</div>
+        <div class="pipe-body">
+          <h4>Test</h4>
+          <p>pytest runs the full backend test suite (83 tests). Pipeline fails fast here — no image is built if tests fail.</p>
+          <pre style="margin-top:10px;">pytest backend/tests/ -v --tb=short --junitxml=test-results.xml</pre>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num num-green">2</div>
+        <div class="pipe-body">
+          <h4>Build &amp; Push</h4>
+          <p>Builds <code>backend</code> and <code>frontend</code> Docker images. Pushes to Azure Container Registry tagged with the short Git SHA. Layer caching via ACR cache manifests keeps builds fast.</p>
+          <pre style="margin-top:10px;"><span class="cm"># Tag example: invoicegenacr.azurecr.io/backend:a1b2c3d4</span>
+docker build → push to ACR (SHA tag + latest)</pre>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num num-yellow">3</div>
+        <div class="pipe-body">
+          <h4>GitOps Update <span style="color:var(--accent4); font-weight:400; font-size:0.8rem;">(replaces kubectl deploy)</span></h4>
+          <p>Uses Kustomize to update image tags in the production overlay, then commits back to Git. ArgoCD detects the commit and syncs the cluster automatically. No cluster credentials in CI.</p>
+          <pre style="margin-top:10px;">cd k8s/overlays/production
+kustomize edit set image \
+  invoicegenacr.azurecr.io/backend=...:<span class="hl">SHA</span> \
+  invoicegenacr.azurecr.io/frontend=...:<span class="hl">SHA</span>
+git commit -m "ci: deploy <span class="hl">SHA</span> [skip ci]"
+git push origin main</pre>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num num-purple">4</div>
+        <div class="pipe-body">
+          <h4>Terraform <span style="color:var(--muted); font-weight:400; font-size:0.8rem;">(manual trigger only)</span></h4>
+          <p>Provisions or updates Azure infrastructure — AKS cluster, ACR, Log Analytics, RBAC role assignments. Runs only via <code>workflow_dispatch</code> to prevent accidental infra changes on every push.</p>
+          <pre style="margin-top:10px;">terraform init
+terraform plan  -out=tfplan
+terraform apply -auto-approve tfplan</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Full Deployment ────────────────────────────────────────────── -->
+  <section id="deployment">
+    <h2>Full Cloud Deployment</h2>
+    <p style="color:var(--muted); font-size:0.88rem; margin-bottom:20px;">
+      Prerequisites: <code>az</code> CLI logged in, <code>terraform &ge; 1.6</code>, <code>kubectl</code>, <code>helm &ge; 3</code>, <code>docker</code>
+    </p>
+    <div class="steps">
+      <div class="step">
+        <h4>Bootstrap Azure — one-time setup</h4>
+        <p>Creates Terraform remote state storage in Azure Blob and sets up OIDC federated credentials for GitHub Actions (no stored passwords).</p>
+        <pre>nano scripts/bootstrap-azure.sh   <span class="cm"># set your GitHub org/repo</span>
+bash scripts/bootstrap-azure.sh</pre>
+        <p style="margin-top:10px;">Add the 3 output values as GitHub repository secrets:<br>
+        <code>AZURE_CLIENT_ID</code> &nbsp; <code>AZURE_TENANT_ID</code> &nbsp; <code>AZURE_SUBSCRIPTION_ID</code></p>
+      </div>
+      <div class="step">
+        <h4>Provision Azure Infrastructure with Terraform</h4>
+        <p>Creates the Resource Group, AKS cluster, ACR, Log Analytics workspace, and grants AKS the AcrPull role.</p>
+        <pre>cd terraform
+terraform init
+terraform plan
+terraform apply</pre>
+      </div>
+      <div class="step">
+        <h4>Connect kubectl to AKS</h4>
+        <pre>az aks get-credentials \
+  --resource-group invoicegen-rg \
+  --name invoicegen-aks</pre>
+      </div>
+      <div class="step">
+        <h4>Install ArgoCD (GitOps)</h4>
+        <p>Installs ArgoCD on AKS, registers the Application watching <code>k8s/overlays/production/</code>, and prints the UI URL and initial admin password.</p>
+        <pre>nano argocd/install-argocd.sh   <span class="cm"># set your GitHub repo URL</span>
+bash argocd/install-argocd.sh</pre>
+      </div>
+      <div class="step">
+        <h4>Install Prometheus + Grafana</h4>
+        <pre>bash monitoring/install-monitoring.sh</pre>
+        <p style="margin-top:8px;">Grafana LoadBalancer IP is printed at the end. Default credentials: <code>admin / admin</code> — change immediately.</p>
+      </div>
+      <div class="step">
+        <h4>Deploy — just push to main</h4>
+        <p>GitHub Actions runs the full pipeline. ArgoCD syncs the cluster within ~3 minutes of the manifest commit.</p>
+        <pre>git push origin main</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Repo Structure ─────────────────────────────────────────────── -->
+  <section id="structure">
+    <h2>Repository Structure</h2>
+    <div class="tree">
+<span class="dir">InvoiceGenerator-main/</span>
+<span class="ann">│</span>
+<span class="ann">├── </span><span class="dir">backend/</span>
+<span class="ann">│   ├── </span><span class="key">Dockerfile</span>              <span class="ann">Multi-stage Python 3.11 image</span>
+<span class="ann">│   ├── </span><span class="file">server.py</span>               <span class="ann">FastAPI application entry point</span>
+<span class="ann">│   ├── </span><span class="file">requirements.txt</span>
+<span class="ann">│   └── </span><span class="dir">tests/</span>                  <span class="ann">pytest suite — 83 tests</span>
+<span class="ann">│</span>
+<span class="ann">├── </span><span class="dir">frontend/</span>
+<span class="ann">│   ├── </span><span class="key">Dockerfile</span>              <span class="ann">Multi-stage Node 20 / Nginx image</span>
+<span class="ann">│   ├── </span><span class="key">nginx.conf</span>              <span class="ann">Nginx with /api/ reverse proxy to backend</span>
+<span class="ann">│   └── </span><span class="dir">src/</span>
+<span class="ann">│       ├── </span><span class="dir">pages/</span>              <span class="ann">POS, Analytics, BillHistory, BillView ...</span>
+<span class="ann">│       └── </span><span class="dir">components/</span>         <span class="ann">CartPanel, PaymentSplitter, UI primitives</span>
+<span class="ann">│</span>
+<span class="ann">├── </span><span class="dir">k8s/</span>                        <span class="ann">Kubernetes manifests</span>
+<span class="ann">│   ├── </span><span class="file">kustomization.yaml</span>      <span class="ann">Marks k8s/ as Kustomize base</span>
+<span class="ann">│   ├── </span><span class="file">namespace.yaml</span>
+<span class="ann">│   ├── </span><span class="file">configmap.yaml</span>
+<span class="ann">│   ├── </span><span class="file">secrets.yaml</span>            <span class="ann">← gitignored, never committed</span>
+<span class="ann">│   ├── </span><span class="file">mongodb-deployment.yaml</span>
+<span class="ann">│   ├── </span><span class="file">backend-deployment.yaml</span>
+<span class="ann">│   ├── </span><span class="file">frontend-deployment.yaml</span>
+<span class="ann">│   ├── </span><span class="file">ingress.yaml</span>
+<span class="ann">│   └── </span><span class="dir">overlays/production/</span>
+<span class="ann">│       └── </span><span class="key">kustomization.yaml</span>  <span class="ann">← ArgoCD watches this; CI updates image tags here</span>
+<span class="ann">│</span>
+<span class="ann">├── </span><span class="dir">terraform/</span>
+<span class="ann">│   ├── </span><span class="key">main.tf</span>                 <span class="ann">AKS, ACR, Log Analytics, RBAC</span>
+<span class="ann">│   ├── </span><span class="file">variables.tf</span>
+<span class="ann">│   └── </span><span class="file">outputs.tf</span>
+<span class="ann">│</span>
+<span class="ann">├── </span><span class="dir">argocd/</span>
+<span class="ann">│   ├── </span><span class="key">application.yaml</span>        <span class="ann">ArgoCD Application — automated sync, selfHeal, prune</span>
+<span class="ann">│   ├── </span><span class="file">project.yaml</span>            <span class="ann">ArgoCD AppProject — scoped namespace permissions</span>
+<span class="ann">│   └── </span><span class="key">install-argocd.sh</span>       <span class="ann">One-command install on AKS</span>
+<span class="ann">│</span>
+<span class="ann">├── </span><span class="dir">monitoring/</span>
+<span class="ann">│   ├── </span><span class="key">prometheus-values.yaml</span>  <span class="ann">Helm values for kube-prometheus-stack</span>
+<span class="ann">│   └── </span><span class="key">install-monitoring.sh</span>   <span class="ann">One-command Prometheus + Grafana install</span>
+<span class="ann">│</span>
+<span class="ann">├── </span><span class="dir">scripts/</span>
+<span class="ann">│   └── </span><span class="key">bootstrap-azure.sh</span>      <span class="ann">One-time: TF backend + OIDC federation setup</span>
+<span class="ann">│</span>
+<span class="ann">├── </span><span class="key">docker-compose.yml</span>          <span class="ann">Local dev — frontend + backend + mongodb</span>
+<span class="ann">├── </span><span class="file">DEPLOYMENT.md</span>               <span class="ann">End-to-end deployment guide</span>
+<span class="ann">└── </span><span class="dir">.github/workflows/</span>
+<span class="ann">    └── </span><span class="key">ci-cd.yml</span>               <span class="ann">4-job GitHub Actions pipeline</span>
+    </div>
+  </section>
+
+  <!-- ── JD Coverage ───────────────────────────────────────────────── -->
+  <section id="jd">
+    <h2>JD Coverage Map</h2>
+    <p style="color:var(--muted); font-size:0.88rem; margin-bottom:20px;">
+      Every requirement from the target DevOps Engineer role is demonstrated by a concrete artifact in this repository.
+    </p>
+    <div class="jd-grid">
+      <div class="jd-item">
+        <span class="jd-check">✓</span>
+        <div>
+          <h4>Docker &amp; Docker Compose</h4>
+          <p><code>backend/Dockerfile</code>, <code>frontend/Dockerfile</code>, <code>docker-compose.yml</code> with healthchecks</p>
+        </div>
+      </div>
+      <div class="jd-item">
+        <span class="jd-check">✓</span>
+        <div>
+          <h4>Kubernetes</h4>
+          <p>7 manifest files, Kustomize base + production overlay, deployed on Azure AKS with rolling updates</p>
+        </div>
+      </div>
+      <div class="jd-item">
+        <span class="jd-check">✓</span>
+        <div>
+          <h4>GitHub Actions CI/CD</h4>
+          <p><code>.github/workflows/ci-cd.yml</code> — 4-stage pipeline: test, build, GitOps update, Terraform</p>
+        </div>
+      </div>
+      <div class="jd-item">
+        <span class="jd-check">✓</span>
+        <div>
+          <h4>Terraform / IaC</h4>
+          <p><code>terraform/</code> — provisions AKS, ACR, Log Analytics, AcrPull RBAC. Remote state in Azure Blob.</p>
+        </div>
+      </div>
+      <div class="jd-item">
+        <span class="jd-check">✓</span>
+        <div>
+          <h4>Prometheus + Grafana</h4>
+          <p><code>monitoring/</code> — kube-prometheus-stack Helm chart, pod annotation scraping, Grafana dashboards</p>
+        </div>
+      </div>
+      <div class="jd-item">
+        <span class="jd-check">✓</span>
+        <div>
+          <h4>Azure Cloud</h4>
+          <p>AKS, ACR, Azure Blob (Terraform state), Log Analytics — all provisioned via Terraform</p>
+        </div>
+      </div>
+      <div class="jd-item">
+        <span class="jd-check">✓</span>
+        <div>
+          <h4>OIDC / OAuth2 <span style="color:var(--accent3)">(nice to have)</span></h4>
+          <p><code>scripts/bootstrap-azure.sh</code> — federated credentials for GitHub Actions, zero stored passwords</p>
+        </div>
+      </div>
+      <div class="jd-item">
+        <span class="jd-check">✓</span>
+        <div>
+          <h4>ArgoCD / GitOps <span style="color:var(--accent3)">(nice to have)</span></h4>
+          <p><code>argocd/</code> — automated sync, selfHeal, prune, Kustomize overlay pattern</p>
+        </div>
+      </div>
+      <div class="jd-item">
+        <span class="jd-check">✓</span>
+        <div>
+          <h4>Python Scripting</h4>
+          <p>FastAPI backend (Python), bootstrap and install shell scripts, pytest test suite</p>
+        </div>
+      </div>
+      <div class="jd-item">
+        <span class="jd-check">✓</span>
+        <div>
+          <h4>Technical Documentation</h4>
+          <p><code>DEPLOYMENT.md</code>, this README, inline comments in all manifests and pipeline YAML</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Cafe Bill Generator &mdash; DevOps Portfolio Project &mdash; Rashid Raza &mdash; 2026
+</footer>
+
+</body>
+</html>
