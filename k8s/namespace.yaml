@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: invoice-generator
+  labels:
+    app.kubernetes.io/name: invoice-generator
+    app.kubernetes.io/managed-by: kubectl

@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: invoice-generator
+
+# Points to k8s/ base manifests
+resources:
+  - ../../
+
+# Image tags are updated here by CI (kustomize edit set image)
+# ArgoCD detects the Git commit and syncs the cluster automatically
+images:
+  - name: invoicegenacr.azurecr.io/backend
+    newTag: latest
+  - name: invoicegenacr.azurecr.io/frontend
+    newTag: latest
+
+# Production-specific replica counts
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      name: backend
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      name: frontend
