@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: invoice-generator
+data:
+  DB_NAME: "cafe_db"
+  MONGO_HOST: "mongodb-service"
+  MONGO_PORT: "27017"
+  BACKEND_PORT: "8000"
+  FRONTEND_PORT: "80"
