@@ -7,7 +7,7 @@ variable "prefix" {
 variable "location" {
   description = "Azure region for all resources"
   type        = string
-  default     = "eastus"
+  default     = "uaenorth"
 }
 
 variable "node_count" {
@@ -25,7 +25,7 @@ variable "node_vm_size" {
 variable "k8s_version" {
   description = "Kubernetes version for AKS"
   type        = string
-  default     = "1.29"
+  default     = "1.35"
 }
 
 variable "tags" {
