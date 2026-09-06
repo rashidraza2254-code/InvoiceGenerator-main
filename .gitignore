@@ -103,3 +103,6 @@ k8s/secrets.yaml
 
 # Docker
 .dockerignore
+
+# Personal notes (not project content)
+TODO-Next-Steps.md
