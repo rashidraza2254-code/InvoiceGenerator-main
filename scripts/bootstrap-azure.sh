@@ -9,11 +9,11 @@
 set -euo pipefail
 
 SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-GITHUB_ORG="your-github-username"          # <-- change this
-GITHUB_REPO="InvoiceGenerator-main"        # <-- change this
+GITHUB_ORG="rashidraza2254-code"
+GITHUB_REPO="InvoiceGenerator-main"
 APP_NAME="invoicegen-github-actions"
 RESOURCE_GROUP="invoicegen-rg"
-LOCATION="eastus"
+LOCATION="uaenorth"
 TFSTATE_RG="tfstate-rg"
 TFSTATE_SA="invoicegentfstate"             # must be globally unique
 TFSTATE_CONTAINER="tfstate"
