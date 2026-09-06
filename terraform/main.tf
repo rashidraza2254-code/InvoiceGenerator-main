@@ -65,9 +65,9 @@ resource "azurerm_kubernetes_cluster" "aks" {
     load_balancer_sku = "standard"
   }
 
-  oms_agent {
-    log_analytics_workspace_id = azurerm_log_analytics_workspace.aks.id
-  }
+  # Container Insights (oms_agent) deliberately omitted: it streams container
+  # logs to Log Analytics at ~$2.30/GB, and Prometheus/Grafana (Phase 6)
+  # already covers the monitoring story for this deployment.
 }
 
 # AKS needs AcrPull on ACR so pods can pull images without credentials
@@ -78,12 +78,14 @@ resource "azurerm_role_assignment" "aks_acr_pull" {
   skip_service_principal_aad_check = true
 }
 
-# ── Log Analytics (for AKS monitoring) ───────────────────────────────────────
+# ── Log Analytics (kept for the CV's monitoring footprint; not wired to AKS
+#    container logs — see oms_agent note above) ───────────────────────────────
 resource "azurerm_log_analytics_workspace" "aks" {
   name                = "${var.prefix}-logs"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
+  daily_quota_gb      = 1 # safety cap in case anything else ever sends data here
   tags                = var.tags
 }
