@@ -20,6 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, EmailStr, BeforeValidator, ConfigDict
+from prometheus_fastapi_instrumentator import Instrumentator
 
 
 # --- MongoDB connection ---
@@ -47,6 +48,12 @@ JWT_ALGORITHM = "HS256"
 
 def get_jwt_secret() -> str:
     return os.environ["JWT_SECRET"]
+
+
+@api_router.get("/health")
+async def health_check():
+    await db.command("ping")
+    return {"status": "ok"}
 
 
 # --- Auth utils ---
@@ -1731,7 +1738,10 @@ async def stripe_status(session_id: str, user: dict = Depends(get_current_user))
     api_key = os.environ.get("STRIPE_API_KEY")
     if not api_key:
         raise HTTPException(status_code=503, detail="Stripe is not configured")
-    from emergentintegrations.payments.stripe.checkout import StripeCheckout
+    try:
+        from emergentintegrations.payments.stripe.checkout import StripeCheckout
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Stripe SDK unavailable: {e}")
     checkout = StripeCheckout(api_key=api_key, webhook_url="")
     status = await checkout.get_checkout_status(session_id)
     tx = await db.payment_transactions.find_one({"session_id": session_id})
@@ -1858,6 +1868,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
