@@ -20,6 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, EmailStr, BeforeValidator, ConfigDict
+from pymongo.errors import DuplicateKeyError
 from prometheus_fastapi_instrumentator import Instrumentator
 
 
@@ -1347,27 +1348,34 @@ async def seed_admin():
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
     existing = await db.users.find_one({"email": admin_email})
 
-    # Ensure a default restaurant exists for the seeded admin
-    default_restaurant = await db.restaurants.find_one({"_id": "default"})
-    if not default_restaurant:
-        await db.restaurants.insert_one({
-            "_id": "default",
+    # Ensure a default restaurant exists for the seeded admin.
+    # Atomic upsert (not find-then-insert): multiple backend replicas can hit
+    # this concurrently on startup, and a plain insert_one would crash-loop
+    # the losing replica on the unique _id index.
+    await db.restaurants.update_one(
+        {"_id": "default"},
+        {"$setOnInsert": {
             "name": "Brew & Bean Cafe",
             "owner_email": admin_email,
             "plan": "pro",
             "active": True,
             "created_at": datetime.now(timezone.utc).isoformat(),
-        })
+        }},
+        upsert=True,
+    )
 
     if not existing:
-        await db.users.insert_one({
-            "email": admin_email,
-            "password_hash": hash_password(admin_password),
-            "name": "Cafe Admin",
-            "role": "admin",
-            "restaurant_id": "default",
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        })
+        try:
+            await db.users.insert_one({
+                "email": admin_email,
+                "password_hash": hash_password(admin_password),
+                "name": "Cafe Admin",
+                "role": "admin",
+                "restaurant_id": "default",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            })
+        except DuplicateKeyError:
+            pass  # a concurrent replica won the race on the unique email index
     else:
         updates: dict = {}
         if not verify_password(admin_password, existing["password_hash"]):
