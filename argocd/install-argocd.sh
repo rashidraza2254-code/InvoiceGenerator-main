@@ -7,7 +7,7 @@
 set -euo pipefail
 
 ARGOCD_VERSION="v2.11.0"
-GITHUB_REPO="https://github.com/your-github-username/InvoiceGenerator-main"  # <-- change
+GITHUB_REPO="https://github.com/rashidraza2254-code/InvoiceGenerator-main"
 
 echo "==> Installing ArgoCD ${ARGOCD_VERSION}..."
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
