@@ -23,6 +23,20 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand(\"ping\")' --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      MONGO_URL: mongodb://localhost:27017
+      DB_NAME: test_cafe_db
+      JWT_SECRET: ci-test-secret-not-used-in-prod
     steps:
       - uses: actions/checkout@v4
 
@@ -36,12 +50,20 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
 
+      - name: Start backend server
+        working-directory: backend
+        run: |
+          nohup uvicorn server:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/health && exit 0
+            sleep 1
+          done
+          echo "Backend never became healthy"; cat server.log; exit 1
+
       - name: Run pytest
         run: pytest backend/tests/ -v --tb=short --junitxml=test-results.xml
         env:
-          MONGO_URL: mongodb://localhost:27017
-          DB_NAME: test_cafe_db
-          JWT_SECRET: ci-test-secret-not-used-in-prod
+          REACT_APP_BACKEND_URL: http://localhost:8000
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
