@@ -10,12 +10,9 @@ spec:
   project: invoice-generator
 
   source:
-    repoURL: https://github.com/your-github-username/InvoiceGenerator-main  # replace
+    repoURL: https://github.com/rashidraza2254-code/InvoiceGenerator-main
     targetRevision: main
     path: k8s/overlays/production    # ArgoCD watches this directory
-    plugin:
-      # Uses Kustomize to render manifests before applying
-      name: ""
     kustomize: {}
 
   destination:

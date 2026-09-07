@@ -3,9 +3,9 @@ kind: Kustomization
 
 namespace: invoice-generator
 
-# Points to k8s/ base manifests
+# Points to k8s/base/ manifests
 resources:
-- ../../
+- ../../base
 
 # Image tags are updated here by CI (kustomize edit set image)
 # ArgoCD detects the Git commit and syncs the cluster automatically
