@@ -199,8 +199,9 @@ class TestCsvExport:
         header = rows[0]
         expected = [
             "Bill #", "Date (UTC)", "Customer", "Items", "Subtotal",
-            "Discount", "Tax %", "Tax", "Service %", "Service",
-            "Total", "Payment Mode", "Cashier", "Currency",
+            "Discount", "Tax %", "Tax", "CGST", "SGST", "IGST",
+            "Service %", "Service", "Total", "Payment Mode",
+            "GST Type", "GSTIN", "Cashier", "Currency",
         ]
         assert header == expected, f"CSV header mismatch.\nExpected: {expected}\nGot: {header}"
 
@@ -216,9 +217,9 @@ class TestCsvExport:
         reader = csv.reader(io.StringIO(r.text))
         rows = list(reader)
         assert len(rows) >= 2, "expected header + at least one UPI row"
-        # Payment Mode column index = 11
+        # Payment Mode column index = 14 (after Bill #..Total, before GST Type/GSTIN/Cashier/Currency)
         for row in rows[1:]:
-            assert row[11] == "UPI", f"non-UPI row in payment-mode-filtered CSV: {row}"
+            assert row[14] == "UPI", f"non-UPI row in payment-mode-filtered CSV: {row}"
 
     def test_export_invalid_to_date_400(self, admin_client):
         r = admin_client.get(f"{API}/bills/export", params={"to_date": "garbage"}, timeout=15)
@@ -335,11 +336,13 @@ class TestCashierRBAC:
         assert b["payment_mode"] == "Card"
         assert b["created_by"] == CASHIER_EMAIL
 
-    def test_public_reads_still_work(self):
-        # GET menu and settings without auth
-        r1 = requests.get(f"{API}/menu", timeout=15)
+    def test_menu_and_settings_readable_by_any_authenticated_role(self, cashier_client):
+        # Multi-tenancy scopes these by restaurant_id, so anonymous reads are no
+        # longer possible (there'd be no restaurant to scope to) - but any
+        # logged-in role, not just admin, can still read them.
+        r1 = cashier_client.get(f"{API}/menu", timeout=15)
         assert r1.status_code == 200
-        r2 = requests.get(f"{API}/settings", timeout=15)
+        r2 = cashier_client.get(f"{API}/settings", timeout=15)
         assert r2.status_code == 200
 
 

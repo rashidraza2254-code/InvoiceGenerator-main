@@ -43,7 +43,7 @@ def auth_client():
 
 # ---------- Health ----------
 def test_health_root():
-    r = requests.get(f"{API}/", timeout=15)
+    r = requests.get(f"{API}/health", timeout=15)
     assert r.status_code == 200
     assert r.json().get("status") == "ok"
 
@@ -97,8 +97,8 @@ class TestAuth:
 
 # ---------- Menu ----------
 class TestMenu:
-    def test_list_menu_seeded_12(self):
-        r = requests.get(f"{API}/menu", timeout=15)
+    def test_list_menu_seeded_12(self, auth_client):
+        r = auth_client.get(f"{API}/menu", timeout=15)
         assert r.status_code == 200
         items = r.json()
         assert isinstance(items, list)
@@ -123,7 +123,7 @@ class TestMenu:
         item_id = created["id"]
 
         # Verify via GET list
-        r2 = requests.get(f"{API}/menu", timeout=15)
+        r2 = auth_client.get(f"{API}/menu", timeout=15)
         names = [i["name"] for i in r2.json()]
         assert "TEST_Mocha" in names
 
@@ -148,8 +148,8 @@ class TestMenu:
 
 # ---------- Settings ----------
 class TestSettings:
-    def test_get_settings_default(self):
-        r = requests.get(f"{API}/settings", timeout=15)
+    def test_get_settings_default(self, auth_client):
+        r = auth_client.get(f"{API}/settings", timeout=15)
         assert r.status_code == 200
         s = r.json()
         assert "cafe_name" in s
@@ -165,7 +165,7 @@ class TestSettings:
 
     def test_update_settings_persists(self, auth_client):
         # Get current
-        r0 = requests.get(f"{API}/settings", timeout=15)
+        r0 = auth_client.get(f"{API}/settings", timeout=15)
         original = r0.json()
 
         payload = {
@@ -180,7 +180,7 @@ class TestSettings:
         assert r.json()["cafe_name"] == "TEST_Cafe_X"
 
         # GET to verify persistence
-        r2 = requests.get(f"{API}/settings", timeout=15)
+        r2 = auth_client.get(f"{API}/settings", timeout=15)
         assert r2.json()["cafe_name"] == "TEST_Cafe_X"
         assert r2.json()["tax_percent"] == 7.5
         assert r2.json()["service_percent"] == 12.5
