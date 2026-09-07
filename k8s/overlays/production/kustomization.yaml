@@ -5,29 +5,31 @@ namespace: invoice-generator
 
 # Points to k8s/ base manifests
 resources:
-  - ../../
+- ../../
 
 # Image tags are updated here by CI (kustomize edit set image)
 # ArgoCD detects the Git commit and syncs the cluster automatically
 images:
-  - name: invoicegenacr.azurecr.io/backend
-    newTag: latest
-  - name: invoicegenacr.azurecr.io/frontend
-    newTag: latest
+- name: invoicegenacr.azurecr.io/backend
+  newName: invoicegenacr.azurecr.io/backend
+  newTag: 9104674d
+- name: invoicegenacr.azurecr.io/frontend
+  newName: invoicegenacr.azurecr.io/frontend
+  newTag: 9104674d
 
 # Production-specific replica counts
 patches:
-  - patch: |-
-      - op: replace
-        path: /spec/replicas
-        value: 2
-    target:
-      kind: Deployment
-      name: backend
-  - patch: |-
-      - op: replace
-        path: /spec/replicas
-        value: 2
-    target:
-      kind: Deployment
-      name: frontend
+- patch: |-
+    - op: replace
+      path: /spec/replicas
+      value: 2
+  target:
+    kind: Deployment
+    name: backend
+- patch: |-
+    - op: replace
+      path: /spec/replicas
+      value: 2
+  target:
+    kind: Deployment
+    name: frontend
