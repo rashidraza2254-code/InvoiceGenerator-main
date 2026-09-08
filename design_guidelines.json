@@ -63,8 +63,8 @@
   },
   "media": {
     "login_background": {
-      "url": "https://static.prod-images.emergentagent.com/jobs/345afcf2-23c6-4d17-a0c0-0dfcdc385f34/images/6e52d941b531a5f5d801a9181644ab9c54a1d1aba1b678d4c6ce8e53f80e89e5.png",
-      "description": "Warm, cozy cafe interior background for the login page."
+      "css": "bg-gradient-to-br from-[#6A7D64] via-[#4A3F38] to-[#2A2421]",
+      "description": "Warm, cozy earthy gradient background for the login page (no external image dependency)."
     },
     "coffee_item_1": {
       "url": "https://images.unsplash.com/photo-1607278967703-161b7cc497f9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1NzZ8MHwxfHNlYXJjaHwzfHxjYWZlJTIwZXNwcmVzc28lMjBjb2ZmZWUlMjBsYXR0ZSUyMGFydHxlbnwwfHx8fDE3Nzk5NTYwOTZ8MA&ixlib=rb-4.1.0&q=85",

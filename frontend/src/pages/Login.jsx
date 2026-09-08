@@ -7,9 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coffee } from "lucide-react";
 
-const BG_IMAGE =
-  "https://static.prod-images.emergentagent.com/jobs/345afcf2-23c6-4d17-a0c0-0dfcdc385f34/images/6e52d941b531a5f5d801a9181644ab9c54a1d1aba1b678d4c6ce8e53f80e89e5.png";
-
 export default function Login() {
   const { user, login } = useAuth();
   const nav = useNavigate();
@@ -39,11 +36,9 @@ export default function Login() {
   return (
     <div className="min-h-screen w-full relative flex items-center justify-center p-4 sm:p-8">
       <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url('${BG_IMAGE}')` }}
+        className="absolute inset-0 bg-gradient-to-br from-[#6A7D64] via-[#4A3F38] to-[#2A2421]"
         aria-hidden
       />
-      <div className="absolute inset-0 bg-[#2A2421]/55" aria-hidden />
 
       <div className="relative w-full max-w-md">
         <div className="text-center mb-8">
