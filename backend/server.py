@@ -9,11 +9,13 @@ import logging
 import uuid
 import csv
 import io
+import json
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Annotated
 
 import bcrypt
 import jwt
+import stripe
 from bson import ObjectId
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -1705,30 +1707,33 @@ async def stripe_checkout(bill_id: str, request: Request, user: dict = Depends(g
     if not api_key:
         raise HTTPException(status_code=503, detail="Stripe is not configured")
 
-    try:
-        from emergentintegrations.payments.stripe.checkout import (
-            StripeCheckout, CheckoutSessionRequest,
-        )
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Stripe SDK unavailable: {e}")
-
     origin = request.headers.get("origin") or str(request.base_url).rstrip("/")
-    host_url = str(request.base_url)
-    webhook_url = f"{host_url.rstrip('/')}/api/webhook/stripe"
-    checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
-
     amount = float(bill["total"])
     currency = (bill.get("currency", "INR") or "INR").lower()
     success_url = f"{origin}/bills/{bill_id}?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{origin}/bills/{bill_id}"
-    req = CheckoutSessionRequest(
-        amount=amount, currency=currency,
-        success_url=success_url, cancel_url=cancel_url,
-        metadata={"bill_id": bill_id, "bill_number": bill["bill_number"]},
-    )
-    session = await checkout.create_checkout_session(req)
+
+    try:
+        session = await stripe.checkout.Session.create_async(
+            api_key=api_key,
+            mode="payment",
+            line_items=[{
+                "price_data": {
+                    "currency": currency,
+                    "unit_amount": round(amount * 100),
+                    "product_data": {"name": f"Bill {bill['bill_number']}"},
+                },
+                "quantity": 1,
+            }],
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={"bill_id": bill_id, "bill_number": bill["bill_number"]},
+        )
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Stripe error: {e}")
+
     await db.payment_transactions.insert_one({
-        "session_id": session.session_id,
+        "session_id": session.id,
         "bill_id": bill_id,
         "amount": amount,
         "currency": currency,
@@ -1738,7 +1743,7 @@ async def stripe_checkout(bill_id: str, request: Request, user: dict = Depends(g
         "provider": "stripe",
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
-    return {"url": session.url, "session_id": session.session_id}
+    return {"url": session.url, "session_id": session.id}
 
 
 @api_router.get("/payments/status/{session_id}")
@@ -1747,16 +1752,14 @@ async def stripe_status(session_id: str, user: dict = Depends(get_current_user))
     if not api_key:
         raise HTTPException(status_code=503, detail="Stripe is not configured")
     try:
-        from emergentintegrations.payments.stripe.checkout import StripeCheckout
+        session = await stripe.checkout.Session.retrieve_async(session_id, api_key=api_key)
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Stripe SDK unavailable: {e}")
-    checkout = StripeCheckout(api_key=api_key, webhook_url="")
-    status = await checkout.get_checkout_status(session_id)
+        raise HTTPException(status_code=503, detail=f"Stripe error: {e}")
     tx = await db.payment_transactions.find_one({"session_id": session_id})
-    if tx and status.payment_status == "paid" and tx.get("payment_status") != "paid":
+    if tx and session.payment_status == "paid" and tx.get("payment_status") != "paid":
         await db.payment_transactions.update_one(
             {"session_id": session_id},
-            {"$set": {"payment_status": "paid", "status": status.status, "paid_at": datetime.now(timezone.utc).isoformat()}},
+            {"$set": {"payment_status": "paid", "status": session.status, "paid_at": datetime.now(timezone.utc).isoformat()}},
         )
         bill_id = tx.get("bill_id")
         if bill_id:
@@ -1765,10 +1768,10 @@ async def stripe_status(session_id: str, user: dict = Depends(get_current_user))
             except Exception:
                 pass
     return {
-        "status": status.status,
-        "payment_status": status.payment_status,
-        "amount_total": status.amount_total,
-        "currency": status.currency,
+        "status": session.status,
+        "payment_status": session.payment_status,
+        "amount_total": session.amount_total,
+        "currency": session.currency,
     }
 
 
@@ -1777,26 +1780,31 @@ async def stripe_webhook(request: Request):
     api_key = os.environ.get("STRIPE_API_KEY")
     if not api_key:
         return {"ok": False, "reason": "stripe-not-configured"}
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
     body = await request.body()
     try:
-        from emergentintegrations.payments.stripe.checkout import StripeCheckout
-        checkout = StripeCheckout(api_key=api_key, webhook_url="")
-        evt = await checkout.handle_webhook(body, request.headers.get("Stripe-Signature"))
+        if webhook_secret:
+            event = stripe.Webhook.construct_event(body, request.headers.get("Stripe-Signature"), webhook_secret)
+        else:
+            event = stripe.Event.construct_from(json.loads(body), api_key)
     except Exception:
         return {"ok": False}
-    if evt and evt.payment_status == "paid":
-        tx = await db.payment_transactions.find_one({"session_id": evt.session_id})
-        if tx and tx.get("payment_status") != "paid":
-            await db.payment_transactions.update_one(
-                {"session_id": evt.session_id},
-                {"$set": {"payment_status": "paid", "paid_at": datetime.now(timezone.utc).isoformat()}},
-            )
-            bill_id = tx.get("bill_id")
-            if bill_id:
-                try:
-                    await db.bills.update_one({"_id": ObjectId(bill_id)}, {"$set": {"payment_status": "paid"}})
-                except Exception:
-                    pass
+    if event.get("type") == "checkout.session.completed":
+        session = event["data"]["object"]
+        session_id = session.get("id")
+        if session.get("payment_status") == "paid":
+            tx = await db.payment_transactions.find_one({"session_id": session_id})
+            if tx and tx.get("payment_status") != "paid":
+                await db.payment_transactions.update_one(
+                    {"session_id": session_id},
+                    {"$set": {"payment_status": "paid", "paid_at": datetime.now(timezone.utc).isoformat()}},
+                )
+                bill_id = tx.get("bill_id")
+                if bill_id:
+                    try:
+                        await db.bills.update_one({"_id": ObjectId(bill_id)}, {"$set": {"payment_status": "paid"}})
+                    except Exception:
+                        pass
     return {"ok": True}
 
 
