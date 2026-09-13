@@ -6,6 +6,7 @@ on:
     # Don't re-trigger on the manifest-update commit ArgoCD watches for
     paths-ignore:
       - "k8s/overlays/**"
+  # (manual re-trigger note: first push-based run since ACR/AKS were recreated 2026-09-13)
   pull_request:
     branches: [main]
   workflow_dispatch:   # Manual trigger for Terraform job
