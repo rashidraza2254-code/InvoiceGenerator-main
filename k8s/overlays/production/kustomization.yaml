@@ -12,10 +12,10 @@ resources:
 images:
 - name: invoicegenacr.azurecr.io/backend
   newName: invoicegenacr.azurecr.io/backend
-  newTag: fb43348c
+  newTag: be6f4af8
 - name: invoicegenacr.azurecr.io/frontend
   newName: invoicegenacr.azurecr.io/frontend
-  newTag: fb43348c
+  newTag: be6f4af8
 
 # Production-specific replica counts
 patches:
