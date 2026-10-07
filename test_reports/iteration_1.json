@@ -29,10 +29,10 @@
     "/app/backend/tests/test_cafe_backend.py"
   ],
   "success_rate": {"backend": "100%", "frontend": "not tested (backend-only request)"},
-  "test_credentials": "admin@cafe.com / REDACTED (seeded on startup, confirmed working)",
+  "test_credentials": "admin@cafe.com / <ADMIN_PASSWORD> (seeded on startup, confirmed working)",
   "seed_data_creation": "Tests created TEST_-prefixed bills (Coffee/Muffin/Tea) and one TEST_Mocha menu item that was deleted in CRUD flow. Settings were temporarily changed and restored.",
   "retest_needed": false,
   "main_agent_can_self_test": true,
-  "context_for_next_testing_agent": "Backend is fully green. Frontend testing was not requested in this iteration. If running frontend tests later, login modal uses /api/auth/login with cookies (withCredentials=true). Default admin: admin@cafe.com/REDACTED. Settings tests temporarily mutate the singleton settings doc but restore it.",
+  "context_for_next_testing_agent": "Backend is fully green. Frontend testing was not requested in this iteration. If running frontend tests later, login modal uses /api/auth/login with cookies (withCredentials=true). Default admin: admin@cafe.com/<ADMIN_PASSWORD>. Settings tests temporarily mutate the singleton settings doc but restore it.",
   "rca of the issue": "N/A - no failing tests"
 }

@@ -98,6 +98,7 @@ docker-compose up --build
 | MongoDB | localhost:27017 |
 
 Login: `admin@cafe.com` with the password set in `ADMIN_PASSWORD`.
+Copy `.env.example` to `.env` and fill in your own values before `docker-compose up`.
 
 In Kubernetes, `APP_ENV=production` is set and the backend refuses to start unless the
 `app-secrets` Secret provides a strong `ADMIN_PASSWORD` (12+ characters, not a default).

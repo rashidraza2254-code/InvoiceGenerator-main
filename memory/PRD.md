@@ -81,4 +81,4 @@
 - Mobile app shell / PWA + offline POS
 
 ## Default credentials
-admin@cafe.com / REDACTED (see `/app/memory/test_credentials.md`)
+admin@cafe.com, password from the ADMIN_PASSWORD environment variable (no default)

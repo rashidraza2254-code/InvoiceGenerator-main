@@ -95,11 +95,6 @@ export default function Login() {
               >
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
-              {process.env.NODE_ENV === "development" && (
-                <p className="text-xs text-[#7A736E] text-center pt-1">
-                  Local dev admin: <span className="font-semibold">admin@cafe.com</span> / <span className="font-semibold">REDACTED</span>
-                </p>
-              )}
               <div className="border-t border-[#E8E4D9] pt-3 text-center">
                 <p className="text-sm text-[#7A736E]">
                   New restaurant?{" "}

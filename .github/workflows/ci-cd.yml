@@ -37,7 +37,6 @@ jobs:
     env:
       MONGO_URL: mongodb://localhost:27017
       DB_NAME: test_cafe_db
-      JWT_SECRET: REDACTED
     steps:
       - uses: actions/checkout@v7
 
@@ -50,6 +49,14 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
+
+      - name: Generate throwaway secrets for this run
+        run: |
+          JWT=$(openssl rand -hex 32); PW=$(openssl rand -hex 16)
+          echo "::add-mask::$JWT"; echo "::add-mask::$PW"
+          echo "JWT_SECRET=$JWT" >> "$GITHUB_ENV"
+          echo "ADMIN_PASSWORD=$PW" >> "$GITHUB_ENV"
+          echo "TEST_ADMIN_PASSWORD=$PW" >> "$GITHUB_ENV"
 
       - name: Start backend server
         working-directory: backend

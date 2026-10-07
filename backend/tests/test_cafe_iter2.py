@@ -31,9 +31,10 @@ if not BASE_URL:
 API = f"{BASE_URL}/api"
 
 ADMIN_EMAIL = os.environ.get("TEST_ADMIN_EMAIL", "admin@cafe.com")
-ADMIN_PASSWORD = os.environ.get("TEST_ADMIN_PASSWORD", "REDACTED")
+ADMIN_PASSWORD = os.environ["TEST_ADMIN_PASSWORD"]  # must match the backend's ADMIN_PASSWORD
 CASHIER_EMAIL = os.environ.get("TEST_CASHIER_EMAIL", "cashier1@cafe.com")
-CASHIER_PASSWORD = os.environ.get("TEST_CASHIER_PASSWORD", "REDACTED")
+CASHIER_PASSWORD = os.environ.get("TEST_CASHIER_PASSWORD") or ADMIN_PASSWORD + "-cashier"
+TEMP_USER_PASSWORD = uuid.uuid4().hex  # throwaway users created by these tests
 
 
 # ---------- Fixtures ----------
@@ -249,7 +250,7 @@ class TestUsersAdmin:
     def test_create_user_invalid_role(self, admin_client):
         r = admin_client.post(f"{API}/users", json={
             "email": f"TEST_bad_{uuid.uuid4().hex[:6]}@x.com",
-            "password": "REDACTED", "role": "superuser",
+            "password": TEMP_USER_PASSWORD, "role": "superuser",
         }, timeout=15)
         assert r.status_code == 400
 
@@ -262,7 +263,7 @@ class TestUsersAdmin:
     def test_create_and_delete_user(self, admin_client):
         email = f"test_del_{uuid.uuid4().hex[:6]}@cafe.com"
         r = admin_client.post(f"{API}/users", json={
-            "email": email, "password": "REDACTED", "role": "cashier", "name": "ToDelete",
+            "email": email, "password": TEMP_USER_PASSWORD, "role": "cashier", "name": "ToDelete",
         }, timeout=15)
         assert r.status_code == 200, r.text
         user = r.json()
@@ -299,7 +300,7 @@ class TestCashierRBAC:
     def test_cashier_blocked_on_users_create(self, cashier_client):
         r = cashier_client.post(f"{API}/users", json={
             "email": f"TEST_blk_{uuid.uuid4().hex[:6]}@x.com",
-            "password": "REDACTED", "role": "cashier",
+            "password": TEMP_USER_PASSWORD, "role": "cashier",
         }, timeout=15)
         assert r.status_code == 403
 

@@ -25,7 +25,7 @@
     "/app/backend/tests/test_cafe_iter4.py"
   ],
   "success_rate": {"backend": "100%", "frontend": "not tested (backend-only request)"},
-  "test_credentials": "admin@cafe.com / REDACTED (admin); cashier1@cafe.com / REDACTED (auto-created by cashier_client fixture if missing)",
+  "test_credentials": "admin@cafe.com / <ADMIN_PASSWORD> (admin); cashier1@cafe.com / <TEST_CASHIER_PASSWORD> (auto-created by cashier_client fixture if missing)",
   "seed_data_creation": "Each test creates throwaway menu items prefixed with TEST_ via POST /api/menu and deletes them in the finally block. No persistent test data is added.",
   "retest_needed": false,
   "main_agent_can_self_test": true,

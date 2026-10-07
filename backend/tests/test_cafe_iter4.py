@@ -33,9 +33,9 @@ if not BASE_URL:
 API = f"{BASE_URL}/api"
 
 ADMIN_EMAIL = os.environ.get("TEST_ADMIN_EMAIL", "admin@cafe.com")
-ADMIN_PASSWORD = os.environ.get("TEST_ADMIN_PASSWORD", "REDACTED")
+ADMIN_PASSWORD = os.environ["TEST_ADMIN_PASSWORD"]  # must match the backend's ADMIN_PASSWORD
 CASHIER_EMAIL = os.environ.get("TEST_CASHIER_EMAIL", "cashier1@cafe.com")
-CASHIER_PASSWORD = os.environ.get("TEST_CASHIER_PASSWORD", "REDACTED")
+CASHIER_PASSWORD = os.environ.get("TEST_CASHIER_PASSWORD") or ADMIN_PASSWORD + "-cashier"
 
 
 # ---------- Fixtures ----------

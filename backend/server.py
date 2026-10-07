@@ -1345,13 +1345,13 @@ async def list_restaurants(admin: dict = Depends(require_super_admin)):
 
 
 # --- Startup: seed admin + default menu + indexes ---
-DEV_ADMIN_PASSWORD = "REDACTED"  # local docker-compose and CI tests only
-WEAK_ADMIN_PASSWORDS = {DEV_ADMIN_PASSWORD, "admin", "password", "changeme", "change-me", "REDACTED"}
+WEAK_ADMIN_PASSWORDS = {"admin", "password", "changeme", "change-me"}
 
 
 def resolve_admin_password() -> str:
-    """Admin password from ADMIN_PASSWORD. Outside production a dev default is allowed;
-    in production (APP_ENV=production) a missing or weak password stops startup."""
+    """Admin password from ADMIN_PASSWORD. There is no built-in default.
+    Production (APP_ENV=production): a missing or weak password stops startup.
+    Development: if unset, a random password is generated and logged once."""
     password = os.environ.get("ADMIN_PASSWORD", "")
     production = os.environ.get("APP_ENV", "development").lower() == "production"
     if production:
@@ -1361,8 +1361,10 @@ def resolve_admin_password() -> str:
             raise RuntimeError("ADMIN_PASSWORD is too weak for production (min 12 chars, not a default)")
         return password
     if not password:
-        logger.warning("ADMIN_PASSWORD not set; using the development default. Never do this in production.")
-        return DEV_ADMIN_PASSWORD
+        import secrets
+        password = secrets.token_urlsafe(12)
+        logger.warning("ADMIN_PASSWORD not set; generated a one-time dev admin password: %s "
+                       "(set ADMIN_PASSWORD in .env to keep a fixed one)", password)
     return password
 
 

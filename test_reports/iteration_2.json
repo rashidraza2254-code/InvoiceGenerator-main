@@ -28,10 +28,10 @@
   ],
   "updated_files": ["/app/backend/tests/test_cafe_iter2.py"],
   "success_rate": {"backend": "100% (56/56 across iter1+iter2)", "frontend": "not tested (backend-only request)"},
-  "test_credentials": "admin@cafe.com / REDACTED (seeded); cashier1@cafe.com / REDACTED (existed; fixture auto-creates if missing via admin POST /api/users)",
+  "test_credentials": "admin@cafe.com / <ADMIN_PASSWORD> (seeded); cashier1@cafe.com / <TEST_CASHIER_PASSWORD> (existed; fixture auto-creates if missing via admin POST /api/users)",
   "seed_data_creation": "Created several TEST_-prefixed bills (UPI/Card/Cash payment modes) and one short-lived test user (test_del_<uuid>@cafe.com) which was deleted in the test. No menu mutations, no settings mutations.",
   "retest_needed": false,
   "main_agent_can_self_test": true,
-  "context_for_next_testing_agent": "Both test files in /app/backend/tests/ (test_cafe_backend.py = iter1, test_cafe_iter2.py = iter2) are green and form the regression suite. Run with: pytest /app/backend/tests/ -v. Cashier credentials cashier1@cafe.com/REDACTED are seeded by the cashier_client fixture if missing. Settings doc is NOT mutated by iter2 tests (only iter1 mutated+restored). Frontend has not been tested in this iteration.",
+  "context_for_next_testing_agent": "Both test files in /app/backend/tests/ (test_cafe_backend.py = iter1, test_cafe_iter2.py = iter2) are green and form the regression suite. Run with: pytest /app/backend/tests/ -v. Cashier credentials cashier1@cafe.com/<TEST_CASHIER_PASSWORD> are seeded by the cashier_client fixture if missing. Settings doc is NOT mutated by iter2 tests (only iter1 mutated+restored). Frontend has not been tested in this iteration.",
   "rca of the issue": "N/A - no failing tests"
 }
