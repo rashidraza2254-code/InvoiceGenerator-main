@@ -97,7 +97,10 @@ docker-compose up --build
 | Backend API docs | http://localhost:8000/docs |
 | MongoDB | localhost:27017 |
 
-Default login: `admin@cafe.com` / `REDACTED`
+Default login (local development only): `admin@cafe.com` / `REDACTED`
+
+In Kubernetes, `APP_ENV=production` is set and the backend refuses to start unless the
+`app-secrets` Secret provides a strong `ADMIN_PASSWORD` (12+ characters, not a default).
 
 ---
 

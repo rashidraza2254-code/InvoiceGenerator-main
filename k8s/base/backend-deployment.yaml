@@ -54,6 +54,21 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: JWT_SECRET
+            - name: APP_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: APP_ENV
+            - name: ADMIN_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: ADMIN_EMAIL
+            - name: ADMIN_PASSWORD   # required: pod won't start if the Secret lacks it
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: ADMIN_PASSWORD
           livenessProbe:
             httpGet:
               path: /api/health

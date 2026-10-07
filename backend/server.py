@@ -1345,9 +1345,30 @@ async def list_restaurants(admin: dict = Depends(require_super_admin)):
 
 
 # --- Startup: seed admin + default menu + indexes ---
+DEV_ADMIN_PASSWORD = "REDACTED"  # local docker-compose and CI tests only
+WEAK_ADMIN_PASSWORDS = {DEV_ADMIN_PASSWORD, "admin", "password", "changeme", "change-me", "REDACTED"}
+
+
+def resolve_admin_password() -> str:
+    """Admin password from ADMIN_PASSWORD. Outside production a dev default is allowed;
+    in production (APP_ENV=production) a missing or weak password stops startup."""
+    password = os.environ.get("ADMIN_PASSWORD", "")
+    production = os.environ.get("APP_ENV", "development").lower() == "production"
+    if production:
+        if not password:
+            raise RuntimeError("ADMIN_PASSWORD must be set when APP_ENV=production")
+        if password.lower() in WEAK_ADMIN_PASSWORDS or len(password) < 12:
+            raise RuntimeError("ADMIN_PASSWORD is too weak for production (min 12 chars, not a default)")
+        return password
+    if not password:
+        logger.warning("ADMIN_PASSWORD not set; using the development default. Never do this in production.")
+        return DEV_ADMIN_PASSWORD
+    return password
+
+
 async def seed_admin():
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@cafe.com").lower()
-    admin_password = os.environ.get("ADMIN_PASSWORD", "REDACTED")
+    admin_password = resolve_admin_password()
     existing = await db.users.find_one({"email": admin_email})
 
     # Ensure a default restaurant exists for the seeded admin.

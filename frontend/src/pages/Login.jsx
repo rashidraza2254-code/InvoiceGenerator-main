@@ -10,8 +10,8 @@ import { Coffee } from "lucide-react";
 export default function Login() {
   const { user, login } = useAuth();
   const nav = useNavigate();
-  const [email, setEmail] = useState("admin@cafe.com");
-  const [password, setPassword] = useState("REDACTED");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -95,9 +95,11 @@ export default function Login() {
               >
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
-              <p className="text-xs text-[#7A736E] text-center pt-1">
-                Default admin: <span className="font-semibold">admin@cafe.com</span> / <span className="font-semibold">REDACTED</span>
-              </p>
+              {process.env.NODE_ENV === "development" && (
+                <p className="text-xs text-[#7A736E] text-center pt-1">
+                  Local dev admin: <span className="font-semibold">admin@cafe.com</span> / <span className="font-semibold">REDACTED</span>
+                </p>
+              )}
               <div className="border-t border-[#E8E4D9] pt-3 text-center">
                 <p className="text-sm text-[#7A736E]">
                   New restaurant?{" "}
